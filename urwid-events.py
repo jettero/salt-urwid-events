@@ -1,8 +1,5 @@
 #!/usr/bin/env python2
 
-print "this seems to cause a complete system meltdown"
-exit(1)
-
 import os, copy, json
 import urwid
 import salt.config, salt.utils
