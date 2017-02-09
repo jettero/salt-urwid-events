@@ -124,7 +124,8 @@ def main():
     app = EventApplication()
     signal.signal(signal.SIGINT, app.see_ya)
     app.run()
+    print "\n\n\n"
+    print "events collected: {0}".format( app.event_no )
 
 if __name__=="__main__":
     main()
-    print "\n\n\n"
