@@ -6,11 +6,14 @@ import os, copy, json
 import urwid
 import salt.config, salt.utils
 
-def setup_logging():
+def setup_logging(file='urwid-events.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"):
     import logging
+    fh = logging.FileHandler(file)
+    fh.setFormatter(logging.Formatter(format))
     log = logging.getLogger('urwid')
+    log.addHandler(fh)
     log.setLevel(logging.DEBUG)
-    log.addHandler(logging.FileHandler('urwid-events.log'))
+    log.debug("logging setup")
     return log
 log = setup_logging()
 
@@ -60,8 +63,11 @@ class mysevent(object):
         while True:
             e = self.next()
             if e is None:
+                log.debug('null event, re-looping')
                 continue
-            os.write( write_fd, json.dumps(e, indent=2) )
+            j = json.dumps(e, indent=2)
+            log.debug("got event: {0}".format(j))
+            os.write( write_fd, j )
 
     def see_ya(self):
         if self.kpid:
