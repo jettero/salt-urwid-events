@@ -120,7 +120,7 @@ class EventApplication(object):
 
         self.event_no += 1
         if self.event_no == 1: self.status(u'got event')
-        else: self.status(u'got {0} events'.format(event_no))
+        else: self.status(u'got {0} events'.format(self.event_no))
 
         if data.startswith('json:'):
             data = json.loads(data[5:])
