@@ -106,6 +106,7 @@ class EventApplication(object):
 
     def run(self):
         self.loop.run()
+        self.see_ya()
 
     def see_ya(self,*x):
         log.debug("os.getpid={0} sevent.kpid={1} I am global, see_ya()".format(os.getpid(),self.sevent.kpid))
