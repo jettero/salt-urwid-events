@@ -16,7 +16,7 @@ def setup_logging(file='urwid-events.log', format="%(asctime)s - %(name)s - %(le
         def __init__(self,fn):
             self.fn = fn
         def write(self,message):
-            self.fn( message.rstrip() + '\n' )
+            self.fn( message.rstrip() )
         def flush(self):
             pass
     sys.stdout = LogWriter(log.debug)
