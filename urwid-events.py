@@ -81,34 +81,51 @@ class mysevent(object):
         if self.kpid:
             os.kill(self.kpid, signal.SIGINT)
 
+class EventApplication(object):
+    pallet = [
+        ('banner', 'black', 'light gray'),
+        ('streak', 'black', 'dark red'),
+        ('bg',     'black', 'dark blue'),
+    ]
+    event_no = 0
+
+    def __init__(self):
+        def exit_on_q(input):
+            if input in ('q', 'Q'):
+                raise urwid.ExitMainLoop()
+
+        self.status = urwid.Text(('banner', u"wating for events"))
+
+        map1 = urwid.AttrMap(self.status, 'streak')
+        fill = urwid.Filler(map1, 'top')
+        map2 = urwid.AttrMap(fill, 'bg')
+
+        self.loop = urwid.MainLoop(map2, self.pallet, unhandled_input=exit_on_q)
+        self.write_fd = self.loop.watch_pipe(self.got_event)
+        self.sevent = mysevent()
+        self.sevent.pipe_loop(self.write_fd)
+
+    def run(self):
+        self.loop.run()
+
+    def see_ya(self,*x):
+        log.debug("os.getpid={0} sevent.kpid={1} I am global, see_ya()".format(os.getpid(),self.sevent.kpid))
+        self.sevent.see_ya()
+        raise urwid.ExitMainLoop()
+
+    def status(self,status):
+        self.status.set_text(('banner', status))
+
+    def got_event(self,data):
+        self.event_no += 1
+        if self.event_no == 1: self.status(u'got event')
+        else: self.status(u'got {0} events'.format(event_no))
+
 def main():
-    def exit_on_q(input):
-        if input in ('q', 'Q'):
-            raise urwid.ExitMainLoop()
-
-    txt = urwid.Text(('banner', u"wating for events"))
-    fill = urwid.Filler(txt, 'top')
-    loop = urwid.MainLoop(fill)
-
-    def got_event(data):
-        global event_no
-        event_no += 1
-        if event_no == 1: txt.set_text( u'got event' )
-        else:             txt.set_text( u'got {0} events'.format(event_no) )
-
-    write_fd = loop.watch_pipe(got_event)
-
-    sevent = mysevent()
-    sevent.pipe_loop(write_fd)
-
-    def see_ya(*x):
-        log.debug("os.getpid={0} sevent.kpid={1} I am global, see_ya()".format(os.getpid(),sevent.kpid))
-        sevent.see_ya()
-        exit(0)
-
-    signal.signal(signal.SIGINT, see_ya)
-
-    loop.run()
+    app = EventApplication()
+    signal.signal(signal.SIGINT, app.see_ya)
+    app.run()
 
 if __name__=="__main__":
     main()
+    print "\n\n\n"
