@@ -68,7 +68,7 @@ class mysevent(object):
                 continue
             j = json.dumps(e, indent=2)
             log.debug("got event: {0}".format(j))
-            os.write( write_fd, j )
+            os.write( write_fd, 'json:'+j )
 
     def see_ya(self):
         if self.kpid:
@@ -76,22 +76,20 @@ class mysevent(object):
 
 class EventApplication(object):
     pallet = [
-        ('banner', 'black', 'light gray'),
-        ('streak', 'black', 'dark red'),
-        ('bg',     'black', 'dark blue'),
+        ('status', 'yellow', 'dark blue'),
     ]
     event_no = 0
 
     def __init__(self):
-        self.status_txt = urwid.Text(('banner', u"wating for events"))
+        self.status_txt = urwid.Text(('status', u"wating for events"))
 
-        map1 = urwid.AttrMap(self.status_txt, 'streak')
-        fill = urwid.Filler(map1, 'top')
-        map2 = urwid.AttrMap(fill, 'bg')
+        self.jids = [urwid.Text('wtf')]
+        self.jids_listwalker = urwid.SimpleListWalker(self.jids)
+        self.jids_listbox = urwid.ListBox(self.jids_listwalker)
+        self.main_frame = urwid.Frame(self.jids_listbox, footer=urwid.AttrMap(self.status_txt, 'status'))
 
-        args   = (map2,self.pallet,)
+        args   = (self.main_frame,self.pallet,)
         kwargs = { 'unhandled_input': self.exit_on_q }
-
         try:
             log.info("trying to use curses")
             kwargs['screen'] = urwid.curses_display.Screen()
@@ -127,6 +125,17 @@ class EventApplication(object):
     def hear_event(self, x):
         os.write( self._write_fd, x )
 
+    def handle_salt_data(self, data):
+        log.debug('trying to handle salt data')
+        if 'data' in data:
+            log.debug('return data found')
+            if 'tag' in data:
+                log.info('salt event tag: {0}'.format(data['tag']))
+            job_data = data['data']
+            if 'jid' in job_data:
+                log.debug('trying to append jid={0} to the listbox'.format(job_data['jid']))
+                self.jids_listwalker.append(urwid.Text(job_data['jid']))
+
     def got_event(self,data):
         if data.lower().strip() == 'q':
             self.see_ya('q')
@@ -136,8 +145,11 @@ class EventApplication(object):
         else: self.status(u'got {0} events'.format(self.event_no))
 
         if data.startswith('json:'):
-            data = json.loads(data[5:])
-            # XXX: do something with this data nao
+            try:
+                self.handle_salt_data(json.loads(data[5:]))
+            except Exception as e:
+                log.warning("exception trying to handle json data: {0}".format(e))
+                pass
 
 def main():
     app = EventApplication()
