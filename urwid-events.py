@@ -1,21 +1,29 @@
 #!/usr/bin/env python2
 
-import signal, os, time
-
-import os, copy, json
+import signal, os, copy, json
 import urwid
 import salt.config, salt.utils
 
 def setup_logging(file='urwid-events.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"):
-    import logging
+    import logging, sys
     fh = logging.FileHandler(file)
     fh.setFormatter(logging.Formatter(format))
     log = logging.getLogger('urwid')
     log.addHandler(fh)
     log.setLevel(logging.DEBUG)
-    log.debug("logging setup")
+    log.debug("logging configured")
+    class LogWriter(object):
+        def __init__(self,fn):
+            self.fn = fn
+        def write(self,message):
+            self.fn( message.rstrip() + '\n' )
+        def flush(self):
+            pass
+    sys.stdout = LogWriter(log.debug)
+    sys.stderr = LogWriter(log.warning)
     return log
 log = setup_logging()
+event_no = 0
 
 class mysevent(object):
     ppid = kpid = None
@@ -78,12 +86,15 @@ def main():
         if input in ('q', 'Q'):
             raise urwid.ExitMainLoop()
 
-    txt = urwid.Text(u"Hello World")
+    txt = urwid.Text(('banner', u"wating for events"))
     fill = urwid.Filler(txt, 'top')
     loop = urwid.MainLoop(fill)
 
     def got_event(data):
-        txt.set_text( 'pipe data:\n{0}'.format(data) )
+        global event_no
+        event_no += 1
+        if event_no == 1: txt.set_text( u'got event' )
+        else:             txt.set_text( u'got {0} events'.format(event_no) )
 
     write_fd = loop.watch_pipe(got_event)
 
