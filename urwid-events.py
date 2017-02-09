@@ -1,10 +1,22 @@
 #!/usr/bin/env python2
 
+import signal, os, time
+
 import os, copy, json
 import urwid
 import salt.config, salt.utils
 
+import logging
+log = logging.getLogger('urwid')
+log.setLevel(logging.DEBUG)
+log.addHandler(logging.FileHandler('urwid-events.log'))
+
+log.debug('lol??')
+exit(1)
+
 class mysevent(object):
+    ppid = kpid = None
+
     def __init__(self):
         # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
         self.master_config = salt.config.master_config('/etc/salt/master')
@@ -24,17 +36,36 @@ class mysevent(object):
         return self.sevent.get_event(full=True, auto_reconnect=True)
 
     def pipe_loop(self, write_fd):
+        log.debug("entering pipe_loop")
+
+        if self.ppid is not None or self.kpid is not None:
+            log.debug("already looping??")
+            return
+
         self.ppid = os.getpid()
         self.kpid = os.fork()
 
+        log.debug("ppid={0} kpid={1}".format(self.ppid,self.kpid))
+
         if self.kpid:
+            log.debug("ppid={0} kpid={1} I am parent and I'm returning".format(self.ppid,self.kpid))
             return
 
+        def see_ya(*x):
+            log.debug("ppid={0} kpid={1} I am kid, see_ya()".format(self.ppid,self.kpid))
+            exit(0)
+        signal.signal(signal.SIGINT, see_ya)
+
+        log.debug("ppid={0} kpid={1} I am kid and I'm looping".format(self.ppid,self.kpid))
         while True:
             e = self.next()
             if e is None:
                 continue
             os.write( write_fd, json.dumps(e, indent=2) )
+
+    def see_ya(self):
+        if self.kpid:
+            os.kill(self.kpid, signal.SIGINT)
 
 def main():
     def exit_on_q(input):
@@ -52,6 +83,13 @@ def main():
 
     sevent = mysevent()
     sevent.pipe_loop(write_fd)
+
+    def see_ya(*x):
+        log.debug("os.getpid={0} sevent.kpid={1} I am global, see_ya()".format(os.getpid(),sevent.kpid))
+        sevent.see_ya()
+        exit(0)
+
+    signal.signal(signal.SIGINT, see_ya)
 
     loop.run()
 
