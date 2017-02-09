@@ -6,13 +6,13 @@ import os, copy, json
 import urwid
 import salt.config, salt.utils
 
-import logging
-log = logging.getLogger('urwid')
-log.setLevel(logging.DEBUG)
-log.addHandler(logging.FileHandler('urwid-events.log'))
-
-log.debug('lol??')
-exit(1)
+def setup_logging():
+    import logging
+    log = logging.getLogger('urwid')
+    log.setLevel(logging.DEBUG)
+    log.addHandler(logging.FileHandler('urwid-events.log'))
+    return log
+log = setup_logging()
 
 class mysevent(object):
     ppid = kpid = None
