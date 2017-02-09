@@ -89,7 +89,20 @@ class EventApplication(object):
         fill = urwid.Filler(map1, 'top')
         map2 = urwid.AttrMap(fill, 'bg')
 
-        self.loop = urwid.MainLoop(map2, self.pallet, unhandled_input=self.exit_on_q)
+        args   = (map2,self.pallet,)
+        kwargs = { 'unhandled_input': self.exit_on_q }
+
+        try:
+            log.info("trying to use curses")
+            kwargs['screen'] = urwid.curses_display.Screen()
+            self.loop = urwid.MainLoop(*args, **kwargs)
+        except Exception as e:
+            log.debug("self.loop exception: {0}".format(e))
+            log.info("failed to use curses, trying the default instead")
+            if 'screen' in kwargs:
+                del kwargs['screen']
+            self.loop = urwid.MainLoop(*args, **kwargs)
+
         self._write_fd = self.loop.watch_pipe(self.got_event)
         self.sevent = mysevent()
         self.sevent.pipe_loop(self._write_fd)
