@@ -2,16 +2,16 @@
 
 import signal, os, copy, json
 import urwid
-import salt.config, salt.utils
+from forkedsalt import ForkedSaltPipeWriter
 
 def setup_logging(file='urwid-events.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"):
     import logging, sys
     fh = logging.FileHandler(file)
     fh.setFormatter(logging.Formatter(format))
+    logging.root.addHandler(fh)
+    logging.root.setLevel(logging.DEBUG)
+    logging.root.debug("logging configured")
     log = logging.getLogger('urwid')
-    log.addHandler(fh)
-    log.setLevel(logging.DEBUG)
-    log.debug("logging configured")
     class LogWriter(object):
         def __init__(self,fn):
             self.fn = fn
@@ -22,57 +22,6 @@ def setup_logging(file='urwid-events.log', format="%(asctime)s - %(name)s - %(le
     sys.stderr = LogWriter(log.warning)
     return log
 log = setup_logging()
-
-class mysevent(object):
-    ppid = kpid = None
-
-    def __init__(self):
-        # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
-        self.master_config = salt.config.master_config('/etc/salt/master')
-        self.minion_config = salt.config.minion_config('/etc/salt/minion')
-
-        self.config = copy.deepcopy(self.minion_config)
-        self.config.update( copy.deepcopy(self.master_config) )
-
-        self.sevent = salt.utils.event.get_event(
-                'master', # node= master events or minion events
-                self.config['sock_dir'],
-                self.config['transport'],
-                opts=self.config,
-                listen=True)
-
-    def next(self):
-        return self.sevent.get_event(full=True, auto_reconnect=True)
-
-    def pipe_loop(self, write_fd):
-        log.debug("entering pipe_loop")
-
-        if self.ppid is not None or self.kpid is not None:
-            log.debug("already looping??")
-            return
-
-        self.ppid = os.getpid()
-        self.kpid = os.fork()
-
-        if self.kpid:
-            return
-
-        def see_ya(*x):
-            exit(0)
-        signal.signal(signal.SIGINT, see_ya)
-
-        while True:
-            e = self.next()
-            if e is None:
-                log.debug('null event, re-looping')
-                continue
-            j = json.dumps(e, indent=2)
-            log.debug("got event: {0}".format(j))
-            os.write( write_fd, 'json:'+j )
-
-    def see_ya(self):
-        if self.kpid:
-            os.kill(self.kpid, signal.SIGINT)
 
 class EventApplication(object):
     pallet = [
@@ -102,7 +51,7 @@ class EventApplication(object):
             self.loop = urwid.MainLoop(*args, **kwargs)
 
         self._write_fd = self.loop.watch_pipe(self.got_event)
-        self.sevent = mysevent()
+        self.sevent = ForkedSaltPipeWriter()
         self.sevent.pipe_loop(self._write_fd)
 
     def exit_on_q(self,input):
