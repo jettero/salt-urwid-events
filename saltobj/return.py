@@ -1,30 +1,63 @@
 # coding: utf-8
 
 import json, urwid
+from fnmatch import fnmatch
 
-__all__ = ["Return"]
+__all__ = ["Event", "Return"]
+NA = '<n/a>'
 
-class Return(object):
-    def __init__(self, json_data):
-        self.raw = json.loads(json_data)
-        self.tag = self.dat('tag', '<?>')
-        self.dat = self.dat('data', {})
-        self.syn = []
+class Event(object):
+    def __new__(cls, json_data):
+        raw = json.loads(json_data)
+        tag = raw.get('tag', NA)
+        if cls._glob(tag, 'salt/job/*/ret/*'):
+            return Return(raw)
+        return Event(raw)
 
-        # XXX: below examples include syndics returning lists of minions expected to return
-        #      incorporate that somehow
+    def __init__(self, raw):
+        self.raw = raw
+        self.tag = self.raw.get('tag', NA)
+        self.dat = self.raw.get('data', {})
 
-        # XXX: the examples below also show a re-written result, data-in-data is removed already
-        #      what does state.event pretty do to refornicate the data??
-        #      collected examples of syndication... looks like we receive the events multiple times
-        #      the final form has the syndic info stripped off already
+    @classmethod
+    def _glob(cls, in_str, pat):
+        return bool( fnmatch(in_str, pat) )
 
-    @property
-    def 
+    def has_tag(self, pat):
+        return self._glob(self.tag, pat)
 
-    @property
-    def is_syndicated(self):
-        return bool( self.syn )
+class Return(Event):
+    def __init__(self, *args, **kwargs):
+        super(Return,self).__init__(*args,**kwargs)
+        self.jid      = self.dat.get('jid', NA)
+        self.fun      = self.dat.get('fun', NA)
+        self.fun_args = self.dat.get('fun_args', [])
+        self.success  = self.dat.get('success', NA)
+        self.retcode  = self.dat.get('retcode', 0)
+        self.returnd  = self.dat.get('return', 0)
+        self.id       = self.dat.get('id', NA)
+
+# salt/job/20170211073107942342/ret/host30.dc1	{
+#     "_stamp": "2017-02-11T15:31:08.242188", 
+#     "cmd": "_return", 
+#     "fun": "grains.get", 
+#     "fun_args": [
+#         "role"
+#     ], 
+#     "id": "host30.dc1", 
+#     "jid": "20170211073107942342", 
+#     "retcode": 0, 
+#     "return": "prod", 
+#     "success": true
+# }
+
+# XXX: below examples include syndics returning lists of minions expected to return
+#      incorporate that somehow
+
+# XXX: the examples below also show a re-written result, data-in-data is removed already
+#      what does state.event pretty do to refornicate the data??
+#      collected examples of syndication... looks like we receive the events multiple times
+#      the final form has the syndic info stripped off already
 
 ### examples from experimental/no-urwid-events.py
 # {
@@ -88,22 +121,6 @@ class Return(object):
 #       "fun": "grains.get", 
 #       "minions": []
 #     }
-#   }
-# } 
-
-# {
-#   "tag": "syndic/salt.stage.or1:b91edb59-f18c-9a7d-5af4-c28358f401fb/salt/job/20170211093753973385/new", 
-#   "data": {
-#     "tgt_type": "glob", 
-#     "jid": "20170211093753973385", 
-#     "tgt": "host00.dc2", 
-#     "_stamp": "2017-02-11T17:37:54.322445", 
-#     "user": "sudo_jettero", 
-#     "arg": [
-#       "role"
-#     ], 
-#     "fun": "grains.get", 
-#     "minions": []
 #   }
 # } 
 
