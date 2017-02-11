@@ -18,6 +18,13 @@ class ForkedSaltPipeWriter(object):
         self.config = copy.deepcopy(self.minion_config)
         self.config.update( copy.deepcopy(self.master_config) )
 
+        # NOTE: salt-run state.event pretty=True
+        #       is really salt.runners.state.event()
+        # which is really salt.modules.state.event()
+        # which is really salt.utils.event.get_event()
+
+        as = inspect.getargspec(self.sevent.get_event)
+
         self.sevent = salt.utils.event.get_event(
                 'master', # node= master events or minion events
                 self.config['sock_dir'],
@@ -26,6 +33,11 @@ class ForkedSaltPipeWriter(object):
                 listen=True)
 
     def next(self):
+        # TODO: older salts don't take the auto_reconnect keyword ... inspect.getargspec shows
+        # neither salt 2015.x.x nor salt 2016.x.x list any kwargs at all, and it's probably
+        # inspected internally, making it impossible to figure out if we can set it or not
+        # without checking the salt version manually and using an if block ...
+        # ... which we'll clearly have to do eventually
         return self.sevent.get_event(full=True, auto_reconnect=True)
 
     def main_loop(self, callback):
