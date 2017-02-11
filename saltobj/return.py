@@ -2,6 +2,8 @@
 
 import json, urwid
 
+__all__ = ["Return"]
+
 class Return(object):
     def __init__(self, json_data):
         self.raw = json.loads(json_data)

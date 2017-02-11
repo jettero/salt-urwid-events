@@ -5,12 +5,12 @@ import logging
 
 log = logging.getLogger('ForkedSaltPipeWriter')
 
+__all__ = ['ForkedSaltPipeWriter']
+
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
 
     def __init__(self):
-        log.error("???")
-        exit(1)
         # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
         self.master_config = salt.config.master_config('/etc/salt/master')
         self.minion_config = salt.config.minion_config('/etc/salt/minion')
@@ -28,6 +28,16 @@ class ForkedSaltPipeWriter(object):
     def next(self):
         return self.sevent.get_event(full=True, auto_reconnect=True)
 
+    def main_loop(self, callback):
+        while True:
+            e = self.next()
+            if e is None:
+                log.debug('null event, re-looping')
+                continue
+            j = json.dumps(e, indent=2)
+            log.debug("got event: {0}".format(j))
+            callback(j)
+
     def pipe_loop(self, write_fd):
         log.debug("entering pipe_loop")
 
@@ -43,16 +53,9 @@ class ForkedSaltPipeWriter(object):
 
         def see_ya(*x):
             exit(0)
-        signal.signal(signal.SIGINT, see_ya)
 
-        while True:
-            e = self.next()
-            if e is None:
-                log.debug('null event, re-looping')
-                continue
-            j = json.dumps(e, indent=2)
-            log.debug("got event: {0}".format(j))
-            os.write( write_fd, 'json:'+j )
+        signal.signal(signal.SIGINT, see_ya)
+        self.main_loop(lambda j: os.write( write_fd, 'json:'+j ))
 
     def see_ya(self):
         if self.kpid:
