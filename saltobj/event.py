@@ -1,18 +1,24 @@
 # coding: utf-8
 
-import json, urwid
+import json, urwid, inspect
 from fnmatch import fnmatch
 
 __all__ = ["Event", "Return"]
 NA = '<n/a>'
 
+def classify_event(json_data):
+    raw = json.loads(json_data) or {}
+    tag = raw.get('tag', NA)
+    cls = Event
+    for clz in globals().values():
+        if inspect.isclass( clz ) and issubclass(clz, Event) and hasattr(clz,'tag_match'):
+            if clz.tag_match is not None and Event._glob(tag, clz.tag_match):
+                cls = clz
+                break
+    return cls(raw)
+
 class Event(object):
-    def __new__(cls, json_data):
-        raw = json.loads(json_data)
-        tag = raw.get('tag', NA)
-        if cls._glob(tag, 'salt/job/*/ret/*'):
-            return Return(raw)
-        return Event(raw)
+    tag_match = None
 
     def __init__(self, raw):
         self.raw = raw
@@ -27,7 +33,11 @@ class Event(object):
         return self._glob(self.tag, pat)
 
 class Return(Event):
+    tag_match = 'salt/job/*/ret/*'
+
     def __init__(self, *args, **kwargs):
+        print "!! Return.__init__({0})".format(args)
+        return
         super(Return,self).__init__(*args,**kwargs)
         self.jid      = self.dat.get('jid', NA)
         self.fun      = self.dat.get('fun', NA)
@@ -36,20 +46,6 @@ class Return(Event):
         self.retcode  = self.dat.get('retcode', 0)
         self.returnd  = self.dat.get('return', 0)
         self.id       = self.dat.get('id', NA)
-
-# salt/job/20170211073107942342/ret/host30.dc1	{
-#     "_stamp": "2017-02-11T15:31:08.242188", 
-#     "cmd": "_return", 
-#     "fun": "grains.get", 
-#     "fun_args": [
-#         "role"
-#     ], 
-#     "id": "host30.dc1", 
-#     "jid": "20170211073107942342", 
-#     "retcode": 0, 
-#     "return": "prod", 
-#     "success": true
-# }
 
 # XXX: below examples include syndics returning lists of minions expected to return
 #      incorporate that somehow

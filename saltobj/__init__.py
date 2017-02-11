@@ -1,3 +1,3 @@
 
-from saltobj import *
+from event import *
 from forkedsalt import *
