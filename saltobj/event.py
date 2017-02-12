@@ -53,6 +53,9 @@ class Event(object):
     def has_tag(self, pat):
         return self._glob(self.tag, pat)
 
+    def __repr__(self):
+        return '{0.__class__.__name__}({0.tag})'.format(self)
+
 class Auth(Event):
     tag_match = 'salt/auth'
 
