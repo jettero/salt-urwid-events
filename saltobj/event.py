@@ -1,12 +1,54 @@
 # coding: utf-8
 
-import json, urwid, inspect, re
+import json, urwid, inspect, re, collections
 from fnmatch import fnmatch
 
 __all__ = ['classify_event']
 NA = '<n/a>'
 
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
+
+class jidcollector(object):
+    def __init__(self):
+        class jiditem(object):
+            def __init__(self):
+                self.events = []
+                self.expected = set()
+                self.returned = set()
+            @property
+            def waiting(self):
+                return bool( self.expected )
+        self.jids = collections.defaultdict(lambda: jiditem())
+
+    def examine_event(self, event):
+        if not isinstance(event,Event):
+            try: event = classify_event(event)
+            except: return
+
+        if hasattr(event,'jid'):
+            jitem = self.jids[ event.jid ]
+            jitem.events.append(event)
+            if isinstance(event,ExpectedReturns):
+                for m in event.minions:
+                    jitem.expected.add(m)
+            if isinstance(event,Return):
+                jitem.expected.remove(event.id)
+                jitem.returned.add(event.id)
+
+    @property
+    def waiting(self):
+        ret = {}
+        for jid,dat in self.jids.iteritems():
+            if dat.waiting:
+                ret[jid] = dat
+        return ret
+
+    def __repr__(self):
+        ret = "jidcollection:\n"
+        for jid,jitem in self.jids.iteritems():
+            ret += ' - {jid} returned={jitem.returned} expected={jitem.expected}\n'.format(
+                jid=jid, jitem=jitem)
+        return ret
 
 def grok_json_event(json_data):
     if isinstance(json_data, dict):
@@ -43,6 +85,10 @@ class Event(object):
         self.raw = raw
         self.tag = self.raw.get('tag', NA)
         self.dat = self.raw.get('data', {})
+        self.dinc = 0
+        while 'data' in self.dat:
+            self.dinc += 1
+            self.dat = self.dat['data']
 
     @classmethod
     def _match(cls, in_str, pat):
@@ -55,6 +101,19 @@ class Event(object):
 
     def __repr__(self):
         return '{0.__class__.__name__}({0.tag})'.format(self)
+
+    def __str__(self):
+        cn = self.__class__.__name__
+        ret = { cn: {} }
+        dat = ret[cn]
+        for k in dir(self):
+            if k.startswith('_') or k in ('tag_match',):
+                continue
+            v = getattr(self,k)
+            if isinstance(v,dict) or isinstance(v,unicode) or isinstance(v,str):
+                dat[k] = v
+        import pprint
+        return pprint.pformat( ret, indent=2 )
 
 class Auth(Event):
     tag_match = 'salt/auth'
@@ -85,6 +144,7 @@ class ExpectedReturns(Event):
     def __init__(self, *args, **kwargs):
         super(ExpectedReturns,self).__init__(*args,**kwargs)
         self.minions = self.dat.get('minions', [])
+        self.jid = self.tag.split('/')[-1]
 
 class SyndicExpectedReturns(ExpectedReturns):
     tag_match = re.compile(r'syndic/[^/]+/\d+')
