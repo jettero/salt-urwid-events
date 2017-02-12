@@ -1,13 +1,13 @@
 # coding: utf-8
 
 import json, urwid, inspect, re, collections
+import dateutil.parser, datetime
 from fnmatch import fnmatch
 
 __all__ = ['classify_event']
 NA = '<n/a>'
 
-DEBUG_RAW = False
-DEBUG_DAT = False
+STR_BLACKLIST = ('tag_match', 'raw', 'dat', )
 
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
@@ -94,6 +94,10 @@ class Event(object):
             self.dinc += 1
             self.dat = self.dat['data']
 
+        self.stamp = self.dat.get('_stamp')
+        if self.stamp:
+            self.dtime = dateutil.parser.parse(self.stamp)
+
     @classmethod
     def _match(cls, in_str, pat):
         if isinstance(pat,str):
@@ -110,15 +114,14 @@ class Event(object):
         cn = self.__class__.__name__
         ret = { cn: {} }
         dat = ret[cn]
-        blacklist = ['tag_match']
-        if not DEBUG_RAW: blacklist.append('raw')
-        if not DEBUG_DAT: blacklist.append('dat')
         for k in dir(self):
-            if k.startswith('_') or k in blacklist:
+            if k.startswith('_') or k in STR_BLACKLIST:
                 continue
             v = getattr(self,k)
             if isinstance(v,dict) or isinstance(v,unicode) or isinstance(v,str):
                 dat[k] = v
+            if isinstance(v,datetime.datetime):
+                dat[k] = v.ctime()
         import pprint
         return pprint.pformat( ret, indent=2 )
 
@@ -200,7 +203,8 @@ def extract_examples(classify=True):
                     y += 1
                     x[i] = '{0:03d} {1}'.format(y,x[i])
                 x = '\n'.join(x)
-                print "Exception({e}), failed to classify:\n{x}".format(e=e, x=x)
+                raise
+                #print "Exception({e}), failed to classify:\n{x}".format(e=e, x=x)
         return ret
     return jsons
 
