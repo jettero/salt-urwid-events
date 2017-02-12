@@ -6,6 +6,9 @@ from fnmatch import fnmatch
 __all__ = ['classify_event']
 NA = '<n/a>'
 
+DEBUG_RAW = False
+DEBUG_DAT = False
+
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
 class jidcollector(object):
@@ -32,7 +35,8 @@ class jidcollector(object):
                 for m in event.minions:
                     jitem.expected.add(m)
             if isinstance(event,Return):
-                jitem.expected.remove(event.id)
+                if event.id in jitem.expected:
+                    jitem.expected.remove(event.id)
                 jitem.returned.add(event.id)
 
     @property
@@ -106,8 +110,11 @@ class Event(object):
         cn = self.__class__.__name__
         ret = { cn: {} }
         dat = ret[cn]
+        blacklist = ['tag_match']
+        if not DEBUG_RAW: blacklist.append('raw')
+        if not DEBUG_DAT: blacklist.append('dat')
         for k in dir(self):
-            if k.startswith('_') or k in ('tag_match',):
+            if k.startswith('_') or k in blacklist:
                 continue
             v = getattr(self,k)
             if isinstance(v,dict) or isinstance(v,unicode) or isinstance(v,str):
