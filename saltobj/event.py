@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import json, urwid, inspect, re, collections
+import json, urwid, inspect, re
 import dateutil.parser, datetime
 from fnmatch import fnmatch
 
@@ -11,36 +11,65 @@ STR_BLACKLIST = ('tag_match', 'raw', 'dat', )
 
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
+class JobItem(object):
+    def __init__(self, jid):
+        self.jid       = jid
+        self.events    = []
+        self.expected  = set()
+        self.returned  = set()
+        self.listeners = []
+        self.dtime     = None
+
+    def append(self, event):
+        if event.dtime and (not self.dtime or self.dtime < event.dtime):
+            self.dtime = event.dtime
+        self.events.append(event)
+
+    @property
+    def waiting(self):
+        return bool( self.expected )
+
 class jidcollector(object):
     def __init__(self):
-        class jiditem(object):
-            def __init__(self):
-                self.events = []
-                self.expected = set()
-                self.returned = set()
-                self.dtime    = None
-            @property
-            def waiting(self):
-                return bool( self.expected )
-        self.jids = collections.defaultdict(lambda: jiditem())
+        self.jids = {}
+
+    def on_change(self, callback):
+        if callback not in self.listeners:
+            self.listeners.append(callback)
 
     def examine_event(self, event):
         if not isinstance(event,Event):
             try: event = classify_event(event)
             except: return
 
+        actions = set()
+
         if hasattr(event,'jid'):
-            jitem = self.jids[ event.jid ]
-            if event.dtime and not jitem.dtime or jitem.dtime < event.dtime:
-                jitem.dtime = event.dtime
-            jitem.events.append(event)
+            if event.jid in self.jids:
+                jitem = self.jids[ event.jid ]
+            else:
+                jitem = JobItem(event.jid)
+                self.jids[ event.jid ] = jitem
+                actions.add('new-jid')
+            jitem.append(event)
+            actions.add('append-event')
             if isinstance(event,ExpectedReturns):
                 for m in event.minions:
-                    jitem.expected.add(m)
+                    if m not in jitem.expected:
+                        actions.add('add-expected')
+                        jitem.expected.add(m)
             if isinstance(event,Return):
                 if event.id in jitem.expected:
-                    jitem.expected.remove(event.id)
-                jitem.returned.add(event.id)
+                    if event.id in jitem.expected:
+                        actions.add('remove-expected')
+                        jitem.expected.remove(event.id)
+                    if event.id not in jitem.returned:
+                        actions.add('add-returned')
+                        jitem.returned.add(event.id)
+
+            if actions:
+                for l in self.listeners:
+                    l(jitem, tuple(actions))
 
     @property
     def waiting(self):
