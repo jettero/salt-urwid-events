@@ -4,7 +4,7 @@ import json, urwid, inspect, re, collections
 import dateutil.parser, datetime
 from fnmatch import fnmatch
 
-__all__ = ['classify_event']
+__all__ = ['classify_event', 'jidcollector']
 NA = '<n/a>'
 
 STR_BLACKLIST = ('tag_match', 'raw', 'dat', )
@@ -18,6 +18,7 @@ class jidcollector(object):
                 self.events = []
                 self.expected = set()
                 self.returned = set()
+                self.dtime    = None
             @property
             def waiting(self):
                 return bool( self.expected )
@@ -30,6 +31,8 @@ class jidcollector(object):
 
         if hasattr(event,'jid'):
             jitem = self.jids[ event.jid ]
+            if event.dtime and not jitem.dtime or jitem.dtime < event.dtime:
+                jitem.dtime = event.dtime
             jitem.events.append(event)
             if isinstance(event,ExpectedReturns):
                 for m in event.minions:
@@ -50,7 +53,7 @@ class jidcollector(object):
     def __repr__(self):
         ret = "jidcollection:\n"
         for jid,jitem in self.jids.iteritems():
-            ret += ' - {jid} returned={jitem.returned} expected={jitem.expected}\n'.format(
+            ret += ' - {jid} dtime={jitem.dtime} returned={jitem.returned} expected={jitem.expected}\n'.format(
                 jid=jid, jitem=jitem)
         return ret
 
@@ -95,8 +98,7 @@ class Event(object):
             self.dat = self.dat['data']
 
         self.stamp = self.dat.get('_stamp')
-        if self.stamp:
-            self.dtime = dateutil.parser.parse(self.stamp)
+        self.dtime = dateutil.parser.parse(self.stamp) if self.stamp else None
 
     @classmethod
     def _match(cls, in_str, pat):
