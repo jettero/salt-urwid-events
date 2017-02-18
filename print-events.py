@@ -5,6 +5,9 @@ import misc
 
 misc.be_root_you_fool()
 
+# have to salt-call test.ping to populate ec2 in order for
+# glob target *.ec2 to turn into *.dom1 like you'd expect
+# mebbe use shelve to cache the obdb at some point?
 _obdb = collections.defaultdict(lambda: {})
 def _c(x,subspace, fmt=None):
     if x not in _obdb[subspace]:
@@ -32,7 +35,7 @@ def _pre(d):
         d['data'] = _pre(d['data'])
     if 'id' in d and '.' in d['id']:
         d['id'] = _obfu(d['id'])
-    if 'tgt' in d:
+    if 'tgt' in d and d.get('tgt_type') == 'glob':
         t = d['tgt']
         for s in ['_h','_d']:
             for i in _obdb[s]:
