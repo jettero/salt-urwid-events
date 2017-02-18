@@ -1,6 +1,7 @@
 import signal, misc
 import saltobj
-import eventwrapper
+import wrapper
+import urwid
 
 class EventApplication(object):
     pallet = [
@@ -60,7 +61,7 @@ class EventApplication(object):
         os.write( self._write_fd, x )
 
     def handle_salt_event(self, event):
-        self.events.append( EventUrwidWrapper( event ) )
+        self.events.append( wrapper.Event( event ) )
 
     def handle_salt_data(self, data):
         self.log.debug('trying to handle salt data')

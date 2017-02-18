@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import urwidobj
+import misc
 
 misc.be_root_you_fool()
 

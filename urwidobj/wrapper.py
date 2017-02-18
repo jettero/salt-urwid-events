@@ -1,9 +1,10 @@
-from saltobj.event import Event
+import saltobj.event
+import urwid
 
-class EventWrapper(urwid.Text):
+class Event(urwid.Text):
     def __init__(self, event):
-        if not isinstance(event,Event):
-            raise TypeError("EventWrappers only understand Event objects")
+        if not isinstance(event,saltobj.event.Event):
+            raise TypeError("urwidobj.wrapper.Event only understand saltobj.event.Event objects")
         self.event = event
         super(EventWrapper,self).__init__(event.tag)
 
