@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import saltobj, sys, collections
+import saltobj, sys, collections, signal
 import misc
 
 misc.be_root_you_fool()
@@ -47,4 +47,8 @@ def _print(j):
     print j, '\n'
     sys.stdout.flush()
 
+def see_ya(*a):
+    print "\nsee ya"
+    exit(0)
+signal.signal(signal.SIGINT, see_ya)
 saltobj.ForkedSaltPipeWriter(preproc=_pre).main_loop(_print)
