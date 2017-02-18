@@ -1,5 +1,5 @@
 
-import os, copy, json
+import os, copy, json, time
 import logging
 import salt.config, salt.utils
 from salt.version import __version__ as saltversion
@@ -29,17 +29,18 @@ class ForkedSaltPipeWriter(object):
         self.config = copy.deepcopy(self.minion_config)
         self.config.update( copy.deepcopy(self.master_config) )
 
-        # NOTE: salt-run state.event pretty=True
-        #       is really salt.runners.state.event()
-        # which is really salt.modules.state.event()
-        # which is really salt.utils.event.get_event()
-
         if replay_file:
             self.replay_fh = open(replay_file,'r')
+        else:
+            self.replay_fh = None
 
         if replay_only:
             self.sevent = None
         else:
+            # NOTE: salt-run state.event pretty=True
+            #       is really salt.runners.state.event()
+            # which is really salt.modules.state.event()
+            # which is really salt.utils.event.get_event()
             self.sevent = salt.utils.event.get_event(
                     'master', # node= master events or minion events
                     self.config['sock_dir'],
@@ -56,18 +57,27 @@ class ForkedSaltPipeWriter(object):
 
     def next(self):
         ev = None
-        if self.replay_file:
+        if self.replay_fh:
             ev_text = ''
-            for line in self.replay_fh.readlines():
-                if ev_text and not line:
+            while True:
+                line = self.replay_fh.readline()
+                if line:
+                    if line.strip(): ev_text += line
+                    else: break
+                else:
+                    self.replay_fh = self.replay_fh.close()
                     break
             if ev_text:
                 ev = json.loads(ev_text)
-            else:
-                self.replay_file = False
+                ev['_from_replay'] = self.replay_file
 
         if not ev:
-            ev = self.sevent.get_event( **self.get_event_args )
+            if self.sevent:
+                ev = self.sevent.get_event( **self.get_event_args )
+            else:
+                log.info('replay finished. sleeping for a sec')
+                time.sleep(1)
+                return
 
         if ev is not None:
             for pprc in self.preproc:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import saltobj, sys, collections, signal
+import saltobj, sys, collections, signal, os
 import misc
 
 misc.be_root_you_fool()
@@ -50,5 +50,10 @@ def _print(j):
 def see_ya(*a):
     print "\nsee ya"
     exit(0)
+
 signal.signal(signal.SIGINT, see_ya)
-saltobj.ForkedSaltPipeWriter(preproc=_pre).main_loop(_print)
+args = {'preproc': _pre}
+if os.path.isfile('event.log'):
+    args['replay_file'] = 'event.log'
+    args['replay_only'] = True
+saltobj.ForkedSaltPipeWriter(**args).main_loop(_print)
