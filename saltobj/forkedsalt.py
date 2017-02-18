@@ -1,10 +1,7 @@
 
-import os, copy, json
-import logging
+import os, copy, json, signal, logging
 import salt.config, salt.utils
 from salt.version import __version__ as saltversion
-
-log = logging.getLogger('ForkedSaltPipeWriter')
 
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
@@ -13,6 +10,8 @@ class ForkedSaltPipeWriter(object):
         # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
         self.master_config = salt.config.master_config('/etc/salt/master')
         self.minion_config = salt.config.minion_config('/etc/salt/minion')
+
+        self.log = logging.getLogger('ForkedSaltPipeWriter')
 
         self.get_event_args = { 'full': True }
         if saltversion.startswith('2016'):
@@ -73,7 +72,7 @@ class ForkedSaltPipeWriter(object):
             if self.sevent:
                 ev = self.sevent.get_event( **self.get_event_args )
             else:
-                log.info("replay only and replay is finished, exit normally")
+                self.log.info("replay only and replay is finished, exit normally")
                 exit(0)
 
         if ev is not None:
@@ -87,16 +86,16 @@ class ForkedSaltPipeWriter(object):
         while True:
             j = self.next()
             if j is None:
-                log.debug('null event, re-looping')
+                self.log.debug('null event, re-looping')
                 continue
-            log.debug("got event: {0}".format(j))
+            self.log.debug("got event: {0}".format(j))
             callback(j)
 
     def pipe_loop(self, write_fd):
-        log.debug("entering pipe_loop")
+        self.log.debug("entering pipe_loop")
 
         if self.ppid is not None or self.kpid is not None:
-            log.debug("already looping??")
+            self.log.debug("already looping??")
             return
 
         self.ppid = os.getpid()

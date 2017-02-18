@@ -6,7 +6,7 @@ class Event(urwid.Text):
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understand saltobj.event.Event objects")
         self.event = event
-        super(EventWrapper,self).__init__(event.tag)
+        super(Event,self).__init__(event.tag)
 
 ### never finished this thought, but seems like there's decent progress here
 # class JobItem(urwid.Text):

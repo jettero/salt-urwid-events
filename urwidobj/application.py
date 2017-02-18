@@ -1,7 +1,9 @@
-import signal, misc
+import signal, os, json
+import urwid
+
+import misc
 import saltobj
 import wrapper
-import urwid
 
 class EventApplication(object):
     pallet = [
@@ -40,7 +42,7 @@ class EventApplication(object):
         if input in ('q', 'Q'):
             self.see_ya('q')
 
-    def sig(self, signal,frame):
+    def sig(self, signo,frame):
         self.hear_event('q')
 
     def run(self):
@@ -61,7 +63,7 @@ class EventApplication(object):
         os.write( self._write_fd, x )
 
     def handle_salt_event(self, event):
-        self.events.append( wrapper.Event( event ) )
+        self.events_listwalker.append( wrapper.Event( event ) )
 
     def handle_salt_data(self, data):
         self.log.debug('trying to handle salt data')

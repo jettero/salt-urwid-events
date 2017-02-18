@@ -9,7 +9,7 @@ def be_root_you_fool():
         print "error??"
         exit(1)
 
-def setup_file_logger(tag='component-name-here', file='urwid-events.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"):
+def setup_file_logger(tag='component-name-here', file='uevents.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"):
     import logging, sys
 
     fh = logging.FileHandler(file)
