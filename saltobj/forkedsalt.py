@@ -1,5 +1,5 @@
 
-import os, copy, json, time
+import os, copy, json
 import logging
 import salt.config, salt.utils
 from salt.version import __version__ as saltversion
@@ -75,9 +75,8 @@ class ForkedSaltPipeWriter(object):
             if self.sevent:
                 ev = self.sevent.get_event( **self.get_event_args )
             else:
-                log.info('replay finished. sleeping for a sec')
-                time.sleep(1)
-                return
+                log.info("replay only and replay is finished, exit normally")
+                exit(0)
 
         if ev is not None:
             for pprc in self.preproc:

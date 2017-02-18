@@ -4,7 +4,6 @@ def be_root_you_fool():
     if os.getuid() > 0:
         import sys
         a = [ x for x in sys.argv ]
-        a.insert(0, a[0])
         a.insert(0, 'sudo')
         os.execlp(a[0], *a)
         print "error??"
