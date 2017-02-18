@@ -1,7 +1,8 @@
 
 import os, copy, json
-import salt.config, salt.utils
 import logging
+import salt.config, salt.utils
+from salt.version import __version__ as saltversion
 
 log = logging.getLogger('ForkedSaltPipeWriter')
 
@@ -10,10 +11,17 @@ __all__ = ['ForkedSaltPipeWriter']
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
 
-    def __init__(self, preproc=None):
+    def __init__(self, preproc=None, replay_file=None, replay_only=False):
         # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
         self.master_config = salt.config.master_config('/etc/salt/master')
         self.minion_config = salt.config.minion_config('/etc/salt/minion')
+
+        self.get_event_args = { 'full': True }
+        if saltversion.startswith('2016'):
+            self.get_event_args['auto_reconnect'] = True
+
+        self.replay_file = replay_file
+        self.replay_only = replay_only
 
         self.preproc = []
         self.add_preproc(preproc)
@@ -26,12 +34,18 @@ class ForkedSaltPipeWriter(object):
         # which is really salt.modules.state.event()
         # which is really salt.utils.event.get_event()
 
-        self.sevent = salt.utils.event.get_event(
-                'master', # node= master events or minion events
-                self.config['sock_dir'],
-                self.config['transport'],
-                opts=self.config,
-                listen=True)
+        if replay_file:
+            self.replay_fh = open(replay_file,'r')
+
+        if replay_only:
+            self.sevent = None
+        else:
+            self.sevent = salt.utils.event.get_event(
+                    'master', # node= master events or minion events
+                    self.config['sock_dir'],
+                    self.config['transport'],
+                    opts=self.config,
+                    listen=True)
 
     def add_preproc(self, *preproc):
         for p in preproc:
@@ -41,15 +55,24 @@ class ForkedSaltPipeWriter(object):
                 self.preproc.append(p)
 
     def next(self):
-        # TODO: older salts don't take the auto_reconnect keyword ... inspect.getargspec shows
-        # neither salt 2015.x.x nor salt 2016.x.x list any kwargs at all, and it's probably
-        # inspected internally, making it impossible to figure out if we can set it or not
-        # without checking the salt version manually and using an if block ...
-        # ... which we'll clearly have to do eventually
-        ev = self.sevent.get_event(full=True, auto_reconnect=True)
+        ev = None
+        if self.replay_file:
+            ev_text = ''
+            for line in self.replay_fh.readlines():
+                if ev_text and not line:
+                    break
+            if ev_text:
+                ev = json.loads(ev_text)
+            else:
+                self.replay_file = False
+
+        if not ev:
+            ev = self.sevent.get_event( **self.get_event_args )
+
         if ev is not None:
             for pprc in self.preproc:
                 ev = pprc(ev)
+
         if ev is not None:
             return json.dumps(ev, indent=2)
 
