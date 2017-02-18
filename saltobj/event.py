@@ -4,7 +4,6 @@ import json, urwid, inspect, re
 import dateutil.parser, datetime
 from fnmatch import fnmatch
 
-__all__ = ['classify_event', 'jidcollector']
 NA = '<n/a>'
 
 STR_BLACKLIST = ('tag_match', 'raw', 'dat', )

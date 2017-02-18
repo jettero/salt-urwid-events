@@ -6,8 +6,6 @@ from salt.version import __version__ as saltversion
 
 log = logging.getLogger('ForkedSaltPipeWriter')
 
-__all__ = ['ForkedSaltPipeWriter']
-
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
 

@@ -1,3 +1,3 @@
 
-from event import *
-from forkedsalt import *
+from event import jidcollector, classify_event
+from forkedsalt import ForkedSaltPipeWriter
