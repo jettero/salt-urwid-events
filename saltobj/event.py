@@ -10,7 +10,7 @@ STR_BLACKLIST = ('tag_match', 'raw', 'dat', )
 
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
-class JobItem(object):
+class Job(object):
     def __init__(self, jid):
         self.jid       = jid
         self.events    = []
@@ -47,7 +47,7 @@ class jidcollector(object):
             if event.jid in self.jids:
                 jitem = self.jids[ event.jid ]
             else:
-                jitem = JobItem(event.jid)
+                jitem = Job(event.jid)
                 self.jids[ event.jid ] = jitem
                 actions.add('new-jid')
             jitem.append(event)
@@ -164,9 +164,9 @@ class Auth(Event):
         self.id     = self.dat.get('id', NA)
         self.act    = self.dat.get('act', NA)
 
-class Job(Event):
+class JobEvent(Event):
     def __init__(self, *args, **kwargs):
-        super(Job,self).__init__(*args,**kwargs)
+        super(JobEvent,self).__init__(*args,**kwargs)
         self.jid      = self.dat.get('jid', NA)
         self.fun      = self.dat.get('fun', NA)
         self.tgt      = self.dat.get('tgt', NA)
@@ -193,7 +193,7 @@ class SyndicExpectedReturns(ExpectedReturns):
         super(SyndicExpectedReturns,self).__init__(*args,**kwargs)
         self.syndic = self.tag.split('/')[1]
 
-class Publish(Job):
+class Publish(JobEvent):
     tag_match = 'salt/job/*/new'
 
     def __init__(self, *args, **kwargs):
@@ -201,7 +201,7 @@ class Publish(Job):
         self.user    = self.dat.get('user', NA)
         self.minions = self.dat.get('minions', [])
 
-class Return(Job):
+class Return(JobEvent):
     tag_match = 'salt/job/*/ret/*'
 
     def __init__(self, *args, **kwargs):
