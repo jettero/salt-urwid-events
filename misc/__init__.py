@@ -1,7 +1,18 @@
 
-import logging, sys
+def be_root_you_fool():
+    import os
+    if os.getuid() > 0:
+        import sys
+        a = [ x for x in sys.argv ]
+        a.insert(0, a[0])
+        a.insert(0, 'sudo')
+        os.execlp(a[0], *a)
+        print "error??"
+        exit(1)
 
 def setup_file_logger(tag='component-name-here', file='urwid-events.log', format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"):
+    import logging, sys
+
     fh = logging.FileHandler(file)
     fh.setFormatter(logging.Formatter(format))
     logging.root.addHandler(fh)

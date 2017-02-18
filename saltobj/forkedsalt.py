@@ -10,10 +10,13 @@ __all__ = ['ForkedSaltPipeWriter']
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
 
-    def __init__(self):
+    def __init__(self, preproc=None):
         # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
         self.master_config = salt.config.master_config('/etc/salt/master')
         self.minion_config = salt.config.minion_config('/etc/salt/minion')
+
+        self.preproc = []
+        self.add_preproc(preproc)
 
         self.config = copy.deepcopy(self.minion_config)
         self.config.update( copy.deepcopy(self.master_config) )
@@ -30,6 +33,13 @@ class ForkedSaltPipeWriter(object):
                 opts=self.config,
                 listen=True)
 
+    def add_preproc(self, *preproc):
+        for p in preproc:
+            if isinstance(p,list) or isinstance(p,tuple):
+                self.add_preproc(*p)
+            elif p is not None and p not in self.preproc:
+                self.preproc.append(p)
+
     def next(self):
         # TODO: older salts don't take the auto_reconnect keyword ... inspect.getargspec shows
         # neither salt 2015.x.x nor salt 2016.x.x list any kwargs at all, and it's probably
@@ -37,6 +47,9 @@ class ForkedSaltPipeWriter(object):
         # without checking the salt version manually and using an if block ...
         # ... which we'll clearly have to do eventually
         ev = self.sevent.get_event(full=True, auto_reconnect=True)
+        if ev is not None:
+            for pprc in self.preproc:
+                ev = pprc(ev)
         if ev is not None:
             return json.dumps(ev, indent=2)
 
