@@ -1,21 +1,23 @@
 #!/usr/bin/env python2
 
-import saltobj, sys, collections, signal, os, argparse
+import saltobj, sys, signal, os, argparse, shelve
 import misc
 
 misc.be_root_you_fool()
 
-# have to salt-call test.ping to populate ec2 in order for
-# glob target *.ec2 to turn into *.dom1 like you'd expect
-# mebbe use shelve to cache the obdb at some point?
-_obdb = collections.defaultdict(lambda: {})
+_obdb = shelve.open('ob.db')
+
 def _c(x,subspace, fmt=None):
-    if x not in _obdb[subspace]:
-        c = len(_obdb[subspace])+1
-        _obdb[subspace][x] = fmt.format(c) if fmt else c
-    return _obdb[subspace][x]
+    ss = _obdb.get(subspace, {})
+    if x not in ss:
+        c = len(ss)+1
+        ss[x] = fmt.format(c) if fmt else c
+        _obdb[subspace] = ss
+        _obdb.sync()
+    return ss[x]
 
 def _obfu(id):
+    id = str(id)
     if id in _obdb:
         return _obdb[id]
     idx  = id.index('.')
@@ -28,6 +30,15 @@ def _obfu(id):
     o = _obdb[id] = '.'.join([host,dom])
     return o
 
+def _obfur(dat, namespaces=True):
+    for k in _obdb:
+        if isinstance(_obdb[k],dict) and namespaces:
+            for i in _obdb[k]:
+                dat = dat.replace(i,_obdb[k][i])
+        elif isinstance(_obdb[k],str):
+            dat = dat.replace(k,_obdb[k])
+    return dat
+
 def _pre(d):
     if 'pub' in d and 'KEY' in d['pub']:
         d['pub'] = '---GPG PUBKEY--'
@@ -35,12 +46,12 @@ def _pre(d):
         d['data'] = _pre(d['data'])
     if 'id' in d and '.' in d['id']:
         d['id'] = _obfu(d['id'])
+    if 'minions' in d:
+        d['minions'] = [ _obfu(x) for x in d['minions'] ]
+    if 'tag' in d:
+        d['tag'] = _obfur(d['tag'],False)
     if 'tgt' in d and d.get('tgt_type') == 'glob':
-        t = d['tgt']
-        for s in ['_h','_d']:
-            for i in _obdb[s]:
-                t = t.replace(i,_obdb[s][i])
-        d['tgt'] = t
+        d['tgt'] = _obfur(d['tgt'])
     return d
 
 def _print(j):
@@ -59,6 +70,7 @@ if __name__ == '__main__':
 
     signal.signal(signal.SIGINT, see_ya)
     a = {
+        'preproc':     _pre,
         'replay_file': args.replay_file,
         'replay_only': args.replay_only,
     }
