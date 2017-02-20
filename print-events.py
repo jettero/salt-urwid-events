@@ -66,12 +66,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("print-events: [options]")
     parser.add_argument('-r', '--replay-file', type=str)
     parser.add_argument('-o', '--replay-only', action='store_true')
+    parser.add_argument('-n', '--no-obfu',     action='store_true')
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, see_ya)
     a = {
-        'preproc':     _pre,
         'replay_file': args.replay_file,
         'replay_only': args.replay_only,
     }
+    if not args.no_obfu: # if obfu
+        a['preproc'] = _pre
     saltobj.ForkedSaltPipeWriter(**a).main_loop(_print)
