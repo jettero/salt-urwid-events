@@ -4,7 +4,7 @@ import urwid
 class Event(urwid.Text):
     def __init__(self, event):
         if not isinstance(event,saltobj.event.Event):
-            raise TypeError("urwidobj.wrapper.Event only understand saltobj.event.Event objects")
+            raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
         self.event = event
         super(Event,self).__init__(event.tag)
 
