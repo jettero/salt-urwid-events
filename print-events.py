@@ -59,7 +59,7 @@ def _print(j):
     sys.stdout.flush()
 
 def see_ya(*a):
-    print "\nsee ya"
+    os.write(2, '\nsee ya\n')
     exit(0)
 
 if __name__ == '__main__':
