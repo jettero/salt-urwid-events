@@ -1,20 +1,27 @@
 
 import os, copy, json, signal, logging
-import salt.config, salt.utils
+import salt.config, salt.minion, salt.config
 from salt.version import __version__ as saltversion
+
+class _nmo(object):
+    def __init__(self, **kw):
+        for k in kw:
+            setattr(self,k,kw[k])
 
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
 
-    def __init__(self, args=None, preproc=None, replay_file=None, replay_only=False):
-        self.replay_file = replay_file
-        self.replay_only = replay_only
-        self.preproc     = preproc
+    def __init__(self, args=None, preproc=None, replay_file=None, replay_only=False, replay_job_cache=None):
+        self.preproc          = preproc
+        self.replay_file      = replay_file
+        self.replay_only      = replay_only
+        self.replay_job_cache = replay_job_cache
 
+        # overwrite all self vars from args (where they match)
         if args:
-            l = locals()
-            for k in [ k for k in vars(args) if k in l and k != 'args' ]:
-                setattr( self, k, getattr(args,k) )
+            for k,v in vars(args).iteritems():
+                if hasattr(self,k):
+                    setattr(self,k,v)
 
         if not isinstance(self.preproc,list):
             if isinstance(self.preproc,tuple):
@@ -45,6 +52,20 @@ class ForkedSaltPipeWriter(object):
             self.replay_fh = open(self.replay_file,'r')
         else:
             self.replay_fh = None
+
+        if self.replay_job_cache:
+            mminion = salt.minion.MasterMinion(self.master_config)
+            for i in ('ext_job_cache', 'master_job_cache',):
+                get_load = '{0}.get_load'.format(i)
+                get_jid  = '{0}.get_jid'.format(i)
+
+                if get_load in mminion.returners and get_jid in mminion.returners:
+                    self.mm = _nmo(get_load=mminion.returners[get_load],
+                        get_jid=mminion.returners[get_jid])
+                    break
+
+            if not hasattr(self,'mm'):
+                self.replay_job_cache = self.mm = False
 
         if self.replay_only:
             self.sevent = None
