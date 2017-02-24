@@ -45,6 +45,7 @@ class MasterMinionJidNexter(object):
 
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
+    evno = 0
 
     def __init__(self, args=None, preproc=None, replay_file=None, replay_only=False, replay_job_cache=None):
         self.preproc          = preproc
@@ -148,6 +149,8 @@ class ForkedSaltPipeWriter(object):
                 ev = pprc(ev)
 
         if ev is not None:
+            ev['_evno'] = self.evno
+            self.evno += 1
             return json.dumps(ev, indent=2)
 
     def main_loop(self, callback):
