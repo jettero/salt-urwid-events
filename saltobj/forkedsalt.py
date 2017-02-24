@@ -20,6 +20,7 @@ class MasterMinionJidNexter(object):
                     setattr(self, fn, mminion.returners[fn_full])
                     break
         self.g = self.gen()
+
     def gen(self):
         for i in self.get_jids():
             # this is trickey, the master doesn't really store the event in the
@@ -28,12 +29,13 @@ class MasterMinionJidNexter(object):
             # again
 
             load = self.get_load(i)
-            load.pop('Minions') # just some master-trash
+            mini = load.pop('Minions')
 
-            tag_keys = { 'jid': load.get('jid', '<>'), 'id': load.get('id', '<>') }
-            job = { 'tag': 'salt/job/{jid}/ret/{id}'.format(**tag_keys), 'data': load }
+            jid = load.get('jid', '<>')
+            for id in mini:
+                job = { 'tag': 'salt/job/{0}/ret/{1}'.format(jid,id), 'data': load }
+                yield job
 
-            yield job
     def next(self):
         if self.g:
             try:
