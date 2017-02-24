@@ -159,6 +159,11 @@ class ForkedSaltPipeWriter(object):
             self.log.debug("got event: {0}".format(j))
             callback(j)
 
+    def _write_to_pipe(self, data, prefix='json:'):
+        if prefix:
+            os.write( self.write_fd, prefix )
+        os.write( self.write_fd, data )
+
     def pipe_loop(self, write_fd):
         self.log.debug("entering pipe_loop")
 
@@ -176,7 +181,9 @@ class ForkedSaltPipeWriter(object):
             exit(0)
 
         signal.signal(signal.SIGINT, see_ya)
-        self.main_loop(lambda j: os.write( write_fd, 'json:'+j ))
+
+        self.write_fd = write_fd
+        self.main_loop(self._write_to_pipe)
 
     def see_ya(self):
         if self.kpid:
