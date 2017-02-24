@@ -6,7 +6,27 @@ from salt.version import __version__ as saltversion
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
 
-    def __init__(self, preproc=None, replay_file=None, replay_only=False):
+    def __init__(self, args=None, preproc=None, replay_file=None, replay_only=False):
+        self.replay_file = replay_file
+        self.replay_only = replay_only
+        self.preproc     = preproc
+
+        if args:
+            l = locals()
+            for k in [ k for k in vars(args) if k in l and k != 'args' ]:
+                setattr( self, k, getattr(args,k) )
+
+        if not isinstance(self.preproc,list):
+            if isinstance(self.preproc,tuple):
+                self.preproc = list(self.preproc)
+            elif self.preproc is not None:
+                self.preproc = [self.preproc]
+            else:
+                self.preproc = []
+
+        self._init2()
+
+    def _init2(self):
         # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
         self.master_config = salt.config.master_config('/etc/salt/master')
         self.minion_config = salt.config.minion_config('/etc/salt/minion')
@@ -17,21 +37,16 @@ class ForkedSaltPipeWriter(object):
         if saltversion.startswith('2016'):
             self.get_event_args['auto_reconnect'] = True
 
-        self.replay_file = replay_file
-        self.replay_only = replay_only
-
-        self.preproc = []
-        self.add_preproc(preproc)
-
         self.config = copy.deepcopy(self.minion_config)
         self.config.update( copy.deepcopy(self.master_config) )
 
-        if replay_file:
-            self.replay_fh = open(replay_file,'r')
+        if self.replay_file:
+            print "opening replay_file={0}".format(self.replay_file)
+            self.replay_fh = open(self.replay_file,'r')
         else:
             self.replay_fh = None
 
-        if replay_only:
+        if self.replay_only:
             self.sevent = None
         else:
             # NOTE: salt-run state.event pretty=True

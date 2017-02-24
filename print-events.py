@@ -73,12 +73,7 @@ if __name__ == '__main__':
 
     signal.signal(signal.SIGINT, see_ya)
 
-    a = {
-        'replay_file': args.replay_file,
-        'replay_only': args.replay_only,
-    }
-
     if not args.no_obfu: # if obfu
-        a['preproc'] = _pre
+        args.preproc = _pre
 
-    saltobj.ForkedSaltPipeWriter(**a).main_loop(_print)
+    saltobj.ForkedSaltPipeWriter(args).main_loop(_print)
