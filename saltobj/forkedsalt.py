@@ -69,6 +69,7 @@ class ForkedSaltPipeWriter(object):
 
     def next(self):
         ev = None
+
         if self.replay_fh:
             ev_text = ''
             while True:
@@ -80,18 +81,20 @@ class ForkedSaltPipeWriter(object):
                     self.replay_fh = self.replay_fh.close()
                     break
             if ev_text:
-                ev = json.loads(ev_text)
-                ev['_from_replay'] = self.replay_file
+                # this is a pretty weak pre-parse/sanity-check, but it works
+                if ev_text.lstrip().startswith('{') and ev_text.rstrip().endswith('}'):
+                    ev = json.loads(ev_text)
+                    ev['_from_replay'] = self.replay_file
 
-        if not ev:
-            if self.sevent:
-                ev = self.sevent.get_event( **self.get_event_args )
-            else:
-                self.log.info("replay only and replay is finished, exit normally")
-                exit(0)
+        elif self.sevent:
+            ev = self.sevent.get_event( **self.get_event_args )
 
-        if ev is not None:
-            for pprc in self.preproc:
+        else:
+            self.log.info("replay only and replay is finished, exit normally")
+            exit(0)
+
+        for pprc in self.preproc:
+            if ev is not None:
                 ev = pprc(ev)
 
         if ev is not None:
