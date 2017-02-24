@@ -11,9 +11,10 @@ class EventApplication(object):
     ]
     event_no = 0
 
-    def __init__(self):
-        self.status_txt = urwid.Text(('status', u"wating for events"))
+    def __init__(self, args):
+        self.args = args
 
+        self.status_txt = urwid.Text(('status', u"wating for events"))
         self.log = misc.setup_file_logger('urwidobj.EventApplication')
 
         self.events = []
@@ -21,21 +22,21 @@ class EventApplication(object):
         self.events_listbox = urwid.ListBox(self.events_listwalker)
         self.main_frame = urwid.Frame(self.events_listbox, footer=urwid.AttrMap(self.status_txt, 'status'))
 
-        args   = (self.main_frame,self.pallet,)
-        kwargs = { 'unhandled_input': self.exit_on_q }
+        _a   = (self.main_frame,self.pallet,)
+        _kw = { 'unhandled_input': self.exit_on_q }
         try:
             self.log.info("trying to use curses")
-            kwargs['screen'] = urwid.curses_display.Screen()
-            self.loop = urwid.MainLoop(*args, **kwargs)
+            _kw['screen'] = urwid.curses_display.Screen()
+            self.loop = urwid.MainLoop(*_a, **_kw)
         except Exception as e:
             self.log.debug("self.loop exception: {0}".format(e))
             self.log.info("failed to use curses, trying the default instead")
-            if 'screen' in kwargs:
-                del kwargs['screen']
-            self.loop = urwid.MainLoop(*args, **kwargs)
+            if 'screen' in _kw:
+                del _kw['screen']
+            self.loop = urwid.MainLoop(*_a, **_kw)
 
         self._write_fd = self.loop.watch_pipe(self.got_event)
-        self.sevent = saltobj.ForkedSaltPipeWriter()
+        self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
         self.sevent.pipe_loop(self._write_fd)
 
     def exit_on_q(self,input):
