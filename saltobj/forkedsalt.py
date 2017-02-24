@@ -6,13 +6,13 @@ from salt.version import __version__ as saltversion
 
 class MasterMinionJidNexter(object):
     def get_jids(self): return []
-    def get_job(self):  pass
+    def get_jid(self):  pass
     def get_load(self): pass
 
     def __init__(self, opts):
         self.log = logging.getLogger('MasterMinionJidNexter')
         mminion = salt.minion.MasterMinion(opts)
-        for fn in ('get_jids', 'get_job', 'get_load',):
+        for fn in ('get_jids', 'get_jid', 'get_load',):
             for i in ('ext_job_cache', 'master_job_cache',):
                 fn_full = '{0}.{1}'.format( opts.get(i), fn )
                 if fn_full in mminion.returners:
@@ -22,7 +22,17 @@ class MasterMinionJidNexter(object):
         self.g = self.gen()
     def gen(self):
         for i in self.get_jids():
-            job = self.get_load(i)
+            # this is trickey, the master doesn't really store the event in the
+            # job cache it has to be reconstructed from various sources and
+            # some extra trash has to be removed to make it sorta look right
+            # again
+
+            load = self.get_load(i)
+            load.pop('Minions') # just some master-trash
+
+            tag_keys = { 'jid': load.get('jid', '<>'), 'id': load.get('id', '<>') }
+            job = { 'tag': 'salt/job/{jid}/ret/{id}'.format(**tag_keys), 'data': load }
+
             yield job
     def next(self):
         if self.g:
