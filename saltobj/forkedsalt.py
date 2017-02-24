@@ -3,10 +3,33 @@ import os, copy, json, signal, logging
 import salt.config, salt.minion, salt.config
 from salt.version import __version__ as saltversion
 
-class _nmo(object):
-    def __init__(self, **kw):
-        for k in kw:
-            setattr(self,k,kw[k])
+
+class MasterMinionJidNexter(object):
+    def get_jids(self): return []
+    def get_job(self):  pass
+    def get_load(self): pass
+
+    def __init__(self, opts):
+        self.log = logging.getLogger('MasterMinionJidNexter')
+        mminion = salt.minion.MasterMinion(opts)
+        for fn in ('get_jids', 'get_job', 'get_load',):
+            for i in ('ext_job_cache', 'master_job_cache',):
+                fn_full = '{0}.{1}'.format( opts.get(i), fn )
+                if fn_full in mminion.returners:
+                    self.log.debug("using MasterMinion.returners[{0}] for MasterMinionJidNexter.{1}".format(fn_full,fn))
+                    setattr(self, fn, mminion.returners[fn_full])
+                    break
+        self.g = self.gen()
+    def gen(self):
+        for i in self.get_jids():
+            job = self.get_load(i)
+            yield job
+    def next(self):
+        if self.g:
+            try:
+                return self.g.next()
+            except StopIteration:
+                self.g = False
 
 class ForkedSaltPipeWriter(object):
     ppid = kpid = None
@@ -54,18 +77,7 @@ class ForkedSaltPipeWriter(object):
             self.replay_fh = None
 
         if self.replay_job_cache:
-            mminion = salt.minion.MasterMinion(self.master_config)
-            for i in ('ext_job_cache', 'master_job_cache',):
-                get_load = '{0}.get_load'.format(i)
-                get_jid  = '{0}.get_jid'.format(i)
-
-                if get_load in mminion.returners and get_jid in mminion.returners:
-                    self.mm = _nmo(get_load=mminion.returners[get_load],
-                        get_jid=mminion.returners[get_jid])
-                    break
-
-            if not hasattr(self,'mm'):
-                self.replay_job_cache = self.mm = False
+            self.mmjn = MasterMinionJidNexter(self.config)
 
         if self.replay_only:
             self.sevent = None
@@ -106,6 +118,11 @@ class ForkedSaltPipeWriter(object):
                 if ev_text.lstrip().startswith('{') and ev_text.rstrip().endswith('}'):
                     ev = json.loads(ev_text)
                     ev['_from_replay'] = self.replay_file
+
+        elif self.replay_job_cache:
+            ev = self.mmjn.next()
+            if ev is None:
+                self.replay_job_cache = self.mmjn = False
 
         elif self.sevent:
             ev = self.sevent.get_event( **self.get_event_args )
