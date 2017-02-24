@@ -1,8 +1,8 @@
+# coding: utf-8
 
 import os, copy, json, signal, logging
 import salt.config, salt.minion, salt.config
 from salt.version import __version__ as saltversion
-
 
 class MasterMinionJidNexter(object):
     def get_jids(self): return []
@@ -159,12 +159,21 @@ class ForkedSaltPipeWriter(object):
             if j is None:
                 self.log.debug('null event, re-looping')
                 continue
-            self.log.debug("got event: {0}".format(j))
+            short = repr(j)
+            if len(short) > 20:
+                short = short[0:20] + '…'
+            self.log.debug("got event len(data)={0} data={1}".format(len(j), short))
             callback(j)
 
     def _write_to_pipe(self, data, prefix='json:'):
         if prefix:
+            self.log.debug('writing prefix={0}'.format(prefix))
             os.write( self.write_fd, prefix )
+
+        short = repr(data)
+        if len(short) > 20:
+            short = short[0:20] + '…'
+        self.log.debug('writing len(data)={0} data={1}'.format(len(data), short))
         os.write( self.write_fd, data )
 
     def pipe_loop(self, write_fd):

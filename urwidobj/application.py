@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import signal, os, json
 import urwid
 
@@ -36,6 +38,7 @@ class EventApplication(object):
             self.loop = urwid.MainLoop(*_a, **_kw)
 
         self._write_fd = self.loop.watch_pipe(self.got_event)
+        self.log.debug('urwid.loop.watch_pipe() write_fd={0}'.format(self._write_fd))
         self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
         self.sevent.pipe_loop(self._write_fd)
 
@@ -64,16 +67,22 @@ class EventApplication(object):
         os.write( self._write_fd, x )
 
     def handle_salt_event(self, event):
+        self.log.debug('handle_salt_event()')
         self.events_listwalker.append( wrapper.Event( event ) )
 
     def handle_salt_data(self, data):
-        self.log.debug('trying to handle salt data')
+        self.log.debug('handle_salt_data(evno={0})'.format(data.get('_evno')))
         event = saltobj.classify_event( data )
         self.handle_salt_event( event )
 
     def got_event(self,data):
         if data.lower().strip() == 'q':
             self.see_ya('q')
+
+        short = repr(data)
+        if len(short) > 20:
+            short = short[0:20] + '…'
+        self.log.debug('got_event() len(data)={0} data={1}'.format(len(data), short))
 
         self.event_no += 1
         if self.event_no == 1: self.status(u'got event')
