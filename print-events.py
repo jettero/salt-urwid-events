@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import saltobj, sys, signal, os, argparse, shelve
+import saltobj, sys, signal, os, shelve
 import misc
 
 misc.be_root_you_fool()
@@ -63,17 +63,22 @@ def see_ya(*a):
     exit(0)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("print-events: [options]")
-    parser.add_argument('-r', '--replay-file', type=str)
-    parser.add_argument('-o', '--replay-only', action='store_true')
-    parser.add_argument('-n', '--no-obfu',     action='store_true')
+    parser = saltobj.ArgumentParser( prog='print-events',
+        description='Capture events and print them in a machine parsable way. '
+        'Mainly intended to be used for used for testing or for posting examples. '
+        'Obfuscation functions are enabled by default since public-posting is the intention. '
+    )
+    parser.add_argument('-n', '--no-obfu', action='store_true', help="skip the obfuscation methods")
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, see_ya)
+
     a = {
         'replay_file': args.replay_file,
         'replay_only': args.replay_only,
     }
+
     if not args.no_obfu: # if obfu
         a['preproc'] = _pre
+
     saltobj.ForkedSaltPipeWriter(**a).main_loop(_print)
