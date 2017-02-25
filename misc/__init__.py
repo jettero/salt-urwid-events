@@ -10,7 +10,7 @@ def be_root_you_fool():
         exit(1)
 
 def setup_file_logger(tag='component-name-here', file='uevents.log',
-    format="%(asctime)s %(levelname)s [%(process)d]%(thread)d %(name)s: %(message)s"):
+    format="%(asctime)s %(levelname)s %(name)s[%(process)d]: %(message)s"):
     import logging, sys
 
     fh = logging.FileHandler(file)
