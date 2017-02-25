@@ -180,8 +180,8 @@ class ForkedSaltPipeWriter(object):
         os.write( self.write_fd, data )
 
         if suffix:
-            self.log.debug('writing suffix={0}'.format(repr(prefix)))
-            os.write( self.write_fd, prefix )
+            self.log.debug('writing suffix={0}'.format(repr(suffix)))
+            os.write( self.write_fd, suffix )
 
     def pipe_loop(self, write_fd):
         self.log.debug("entering pipe_loop")

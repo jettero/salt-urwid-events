@@ -16,7 +16,7 @@ class EventApplication(object):
     def __init__(self, args):
         self.args = args
 
-        self._incoming_data = ''
+        self._pdat= ''
 
         self.status_txt = urwid.Text(('status', u"wating for events"))
         self.log = misc.setup_file_logger('urwidobj.EventApplication')
@@ -79,19 +79,18 @@ class EventApplication(object):
 
     def got_pipe_data(self,data):
         if data:
-            self._incoming_data += data
-        short = repr(self._incoming_data)
+            self._pdat+= data
+        short = repr(self._pdat)
         if len(short) > 20:
             short = short[0:20] + '…'
-        self.log.debug('got_pipe_data() len(_idat)={0} _idat={1}'.format(
-            len(self._incoming_data), short))
-        d1,sep,d2 = self._incoming_data.partition(saltobj.RS)
-        while sep:
+        self.log.debug('got_pipe_data() len(_pdat)={0} _pdat={1}'.format(
+            len(self._pdat, short)))
+        while saltobj.RS in self._pdat:
+            d1,_,d2 = self._pdatpartition(saltobj.RS)
             self.log.debug("  gpd() len(d1)={0} len(d2)={1}".format(
                 len(d1), len(d2) ))
-            self._incoming_data = d2
+            self._pdat= d2
             self.got_event(d1)
-            d1,sep,d2 = self._incoming_data.partition(saltobj.RS)
 
     def got_event(self,data):
         if data.lower().strip() == 'q':
