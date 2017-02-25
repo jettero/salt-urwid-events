@@ -162,10 +162,7 @@ class ForkedSaltPipeWriter(object):
             if j is None:
                 self.log.debug('null event, re-looping')
                 continue
-            short = repr(j)
-            if len(short) > 20:
-                short = short[0:20] + '…'
-            self.log.debug("main_loop callback with len(data)={0} data={1}".format(len(j), short))
+            self.log.debug("main_loop callback with {0} byte(s)".format(len(j)))
             callback(j)
 
     def _write_to_pipe(self, data, prefix='json:', suffix=RS):
@@ -173,10 +170,7 @@ class ForkedSaltPipeWriter(object):
             self.log.debug('writing prefix={0}'.format(repr(prefix)))
             os.write( self.write_fd, prefix )
 
-        short = repr(data)
-        if len(short) > 20:
-            short = short[0:20] + '…'
-        self.log.debug('write_to_pipe len(data)={0} data={1}'.format(len(data), short))
+        self.log.debug("write_to_pipe with {0} byte(s)".format(len(data)))
         os.write( self.write_fd, data )
 
         if suffix:

@@ -78,18 +78,11 @@ class EventApplication(object):
         self.handle_salt_event( event )
 
     def got_pipe_data(self,data):
-        self.log.debug("got_pip_data len={0}".format(len(data)))
+        self.log.debug("got_pipe_data() {0} byte(s)".format(len(data)))
         if data:
             self._pdat+= data
-        short = repr(self._pdat)
-        if len(short) > 20:
-            short = short[0:20] + '…'
-        self.log.debug('got_pipe_data() len(_pdat)={0} _pdat={1}'.format(
-            len(self._pdat), short))
         while saltobj.RS in self._pdat:
             d1,_,d2 = self._pdat.partition(saltobj.RS)
-            self.log.debug("  gpd() len(d1)={0} len(d2)={1}".format(
-                len(d1), len(d2) ))
             self._pdat= d2
             self.got_event(d1)
 
@@ -97,10 +90,7 @@ class EventApplication(object):
         if data.lower().strip() == 'q':
             self.see_ya('q')
 
-        short = repr(data)
-        if len(short) > 20:
-            short = short[0:20] + '…'
-        self.log.debug('got_event() len(data)={0} data={1}'.format(len(data), short))
+        self.log.debug('got_event() {0} byte(s)'.format(len(data)))
 
         self.event_no += 1
         if self.event_no == 1: self.status(u'got event')
