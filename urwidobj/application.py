@@ -16,6 +16,8 @@ class EventApplication(object):
     def __init__(self, args):
         self.args = args
 
+        self._incoming_data = ''
+
         self.status_txt = urwid.Text(('status', u"wating for events"))
         self.log = misc.setup_file_logger('urwidobj.EventApplication')
 
@@ -37,7 +39,7 @@ class EventApplication(object):
                 del _kw['screen']
             self.loop = urwid.MainLoop(*_a, **_kw)
 
-        self._write_fd = self.loop.watch_pipe(self.got_event)
+        self._write_fd = self.loop.watch_pipe(self.got_pipe_data)
         self.log.debug('urwid.loop.watch_pipe() write_fd={0}'.format(self._write_fd))
         self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
         self.sevent.pipe_loop(self._write_fd)
@@ -64,7 +66,7 @@ class EventApplication(object):
         self.status_txt.set_text(('banner', status))
 
     def hear_event(self, x):
-        os.write( self._write_fd, x )
+        os.write( self._write_fd, x + '\xe1' )
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
@@ -74,6 +76,14 @@ class EventApplication(object):
         self.log.debug('handle_salt_data(evno={0})'.format(data.get('_evno')))
         event = saltobj.classify_event( data )
         self.handle_salt_event( event )
+
+    def got_pipe_data(self,data):
+        self._incoming_data += data
+        d1,sep,d2 = self._incoming_data.partition('\x1e')
+        if sep:
+            data = d1
+            self._incoming_data = d2
+            self.got_event(d1)
 
     def got_event(self,data):
         if data.lower().strip() == 'q':
@@ -93,4 +103,3 @@ class EventApplication(object):
                 self.handle_salt_data(json.loads(data[5:]))
             except Exception as e:
                 self.log.warning("exception trying to handle json data: {0}".format(e))
-                pass
