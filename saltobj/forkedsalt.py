@@ -165,9 +165,10 @@ class ForkedSaltPipeWriter(object):
             self.log.debug("main_loop callback with len(data)={0} data={1}".format(len(j), short))
             callback(j)
 
-    def _write_to_pipe(self, data, prefix='json:'):
+    def _write_to_pipe(self, data, prefix='json:', suffix='\x1e'):
+        # default suffix of \x1e is ascii for record separator RS
         if prefix:
-            self.log.debug('writing prefix={0}'.format(prefix))
+            self.log.debug('writing prefix={0}'.format(repr(prefix)))
             os.write( self.write_fd, prefix )
 
         short = repr(data)
@@ -175,6 +176,10 @@ class ForkedSaltPipeWriter(object):
             short = short[0:20] + '…'
         self.log.debug('write_to_pipe len(data)={0} data={1}'.format(len(data), short))
         os.write( self.write_fd, data )
+
+        if suffix:
+            self.log.debug('writing suffix={0}'.format(repr(prefix)))
+            os.write( self.write_fd, prefix )
 
     def pipe_loop(self, write_fd):
         self.log.debug("entering pipe_loop")
