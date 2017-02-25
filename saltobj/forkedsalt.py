@@ -4,6 +4,9 @@ import os, copy, json, signal, logging
 import salt.config, salt.minion, salt.config
 from salt.version import __version__ as saltversion
 
+RS = '\x1e' # default suffix of \x1e is ascii for record
+            # separator RS
+
 class MasterMinionJidNexter(object):
     def get_jids(self): return []
     def get_jid(self):  pass
@@ -165,8 +168,7 @@ class ForkedSaltPipeWriter(object):
             self.log.debug("main_loop callback with len(data)={0} data={1}".format(len(j), short))
             callback(j)
 
-    def _write_to_pipe(self, data, prefix='json:', suffix='\x1e'):
-        # default suffix of \x1e is ascii for record separator RS
+    def _write_to_pipe(self, data, prefix='json:', suffix=RS):
         if prefix:
             self.log.debug('writing prefix={0}'.format(repr(prefix)))
             os.write( self.write_fd, prefix )
