@@ -78,12 +78,20 @@ class EventApplication(object):
         self.handle_salt_event( event )
 
     def got_pipe_data(self,data):
-        self._incoming_data += data
+        if data:
+            self._incoming_data += data
+        short = repr(self._incoming_data)
+        if len(short) > 20:
+            short = short[0:20] + '…'
+        self.log.debug('got_pipe_data() len(_idat)={0} _idat={1}'.format(
+            len(self._incoming_data), short))
         d1,sep,d2 = self._incoming_data.partition('\x1e')
-        if sep:
-            data = d1
+        while sep:
+            self.log.debug("  gpd() len(d1)={0} len(d2)={1}".format(
+                len(d1), len(d2) ))
             self._incoming_data = d2
             self.got_event(d1)
+            d1,sep,d2 = self._incoming_data.partition('\x1e')
 
     def got_event(self,data):
         if data.lower().strip() == 'q':
