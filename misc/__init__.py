@@ -45,6 +45,8 @@ def setup_file_logger(args, tag='component-name-here',
         cuid = int(os.environ.get('SUDO_UID', '0'))
         cgid = int(os.environ.get('SUDO_GID', '0'))
         if cuid:
-            os.chown( logging.logfile, cuid,cgid )
+            if not os.path.exists(args.logfile):
+                open(args.logfile, 'a').close()
+            os.chown(args.logfile, cuid,cgid)
 
     return log

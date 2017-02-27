@@ -26,7 +26,7 @@ class EventApplication(object):
         self.events_listbox = urwid.ListBox(self.events_listwalker)
         self.main_frame = urwid.Frame(
             self.events_listbox,
-            footer=urwid.AttrMap(self.status_txt, self.pallet)
+            footer=urwid.AttrMap(self.status_txt, 'status')
         )
 
         _a   = (self.main_frame,self.pallet,)
@@ -48,11 +48,15 @@ class EventApplication(object):
         self.sevent.pipe_loop(self._write_fd)
 
     def exit_on_q(self,input):
+        self.log.debug('got keyboard input: {0}'.format(input))
         if input in ('q', 'Q'):
             self.see_ya('q')
 
     def sig(self, signo,frame):
-        self.hear_event('q')
+        if signo in (signal.SIGINT,):
+            self.exit_on_q('q')
+        else:
+            self.log.info("ignoring signal={0}".format(signo))
 
     def run(self):
         signal.signal(signal.SIGINT, self.sig)
@@ -67,9 +71,6 @@ class EventApplication(object):
 
     def status(self,status):
         self.status_txt.set_text(('banner', status))
-
-    def hear_event(self, x):
-        os.write( self._write_fd, x + '\xe1' )
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
