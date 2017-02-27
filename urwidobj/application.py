@@ -70,7 +70,7 @@ class EventApplication(object):
         raise urwid.ExitMainLoop()
 
     def status(self,status):
-        self.status_txt.set_text(('banner', status))
+        self.status_txt.set_text(('status', status))
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
