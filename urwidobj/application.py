@@ -19,12 +19,15 @@ class EventApplication(object):
         self._pdat= ''
 
         self.status_txt = urwid.Text(('status', u"wating for events"))
-        self.log = misc.setup_file_logger('urwidobj.EventApplication')
+        self.log = misc.setup_file_logger(args, 'urwidobj.EventApplication')
 
         self.events = []
         self.events_listwalker = urwid.SimpleListWalker(self.events)
         self.events_listbox = urwid.ListBox(self.events_listwalker)
-        self.main_frame = urwid.Frame(self.events_listbox, footer=urwid.AttrMap(self.status_txt, 'status'))
+        self.main_frame = urwid.Frame(
+            self.events_listbox,
+            footer=urwid.AttrMap(self.status_txt, self.pallet)
+        )
 
         _a   = (self.main_frame,self.pallet,)
         _kw = { 'unhandled_input': self.exit_on_q }

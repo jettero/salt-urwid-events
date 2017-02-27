@@ -3,8 +3,6 @@
 import saltobj, sys, signal, os, shelve
 import misc
 
-misc.be_root_you_fool()
-
 _obdb = shelve.open('ob.db')
 
 def _c(x,subspace, fmt=None):
@@ -63,13 +61,15 @@ def see_ya(*a):
     exit(0)
 
 if __name__ == '__main__':
-    parser = saltobj.ArgumentParser( prog='print-events',
+    parser = misc.ArgumentParser( prog='print-events',
         description='Capture events and print them in a machine parsable way. '
         'Mainly intended to be used for used for testing or for posting examples. '
         'Obfuscation functions are enabled by default since public-posting is the intention. '
     )
     parser.add_argument('-n', '--no-obfu', action='store_true', help="skip the obfuscation methods")
     args = parser.parse_args()
+
+    misc.be_root_you_fool()
 
     signal.signal(signal.SIGINT, see_ya)
 
