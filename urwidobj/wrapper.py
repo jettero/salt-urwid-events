@@ -1,7 +1,7 @@
 import saltobj.event
 import urwid
 
-class Event(urwid.Text):
+class Event(urwid.Button):
     def __init__(self, event):
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
