@@ -72,9 +72,15 @@ class EventApplication(object):
     def status(self,status):
         self.status_txt.set_text(('status', status))
 
+    def event_button_click(self, evw):
+        self.log.debug('event_button_click(evw={0})'.format(evw))
+
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
-        self.events_listwalker.append( wrapper.Event( event ) )
+        evw = wrapper.Event(event)
+        self.events_listwalker.append(evw)
+
+        urwid.connect_signal(evw, 'click', self.event_button_click)
 
     def handle_salt_data(self, data):
         self.log.debug('handle_salt_data(evno={0})'.format(data.get('_evno')))

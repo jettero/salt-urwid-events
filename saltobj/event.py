@@ -115,7 +115,6 @@ def classify_event(json_data):
 
 class Event(object):
     tag_match = None
-    _evno = 0
 
     def __init__(self, raw):
         self.raw = raw
@@ -130,8 +129,12 @@ class Event(object):
         self.dtime = dateutil.parser.parse(self.stamp) if self.stamp else None
 
     @property
+    def evno(self):
+        return self.raw.get('_evno')
+
+    @property
     def short(self):
-        return '#{0._evno} tag={0.tag} ret={0.retcode}'.format(self)
+        return '#{0.evno} tag={0.tag} ret={0.retcode}'.format(self)
 
     @classmethod
     def _match(cls, in_str, pat):
