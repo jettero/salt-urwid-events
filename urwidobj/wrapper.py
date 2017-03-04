@@ -6,8 +6,7 @@ class Event(urwid.Button):
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
         self.event = event
-        evno = event.raw.get('_evno')
-        super(Event,self).__init__('#{0}: tag={1} retcode={2}'.format(evno, event.tag, event.retcode))
+        super(Event,self).__init__(event.short)
 
 ### never finished this thought, but seems like there's decent progress here
 # class JobItem(urwid.Text):
