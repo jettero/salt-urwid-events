@@ -6,11 +6,10 @@ import urwid
 import misc
 import saltobj
 import wrapper
+from pallet import get_pallet
 
 class EventApplication(object):
-    pallet = [
-        ('status', 'yellow', 'dark blue'),
-    ]
+    pallet = get_pallet('main')
     event_no = 0
 
     def __init__(self, args):
@@ -77,10 +76,8 @@ class EventApplication(object):
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
-        evw = wrapper.Event(event)
+        evw = wrapper.Event(event, self.event_button_click)
         self.events_listwalker.append(evw)
-
-        urwid.connect_signal(evw, 'click', self.event_button_click)
 
     def handle_salt_data(self, data):
         self.log.debug('handle_salt_data(evno={0})'.format(data.get('_evno')))

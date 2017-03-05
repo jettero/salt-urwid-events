@@ -2,11 +2,17 @@ import saltobj.event
 import urwid
 
 class Event(urwid.Button):
-    def __init__(self, event):
+
+    def __init__(self, event, callback):
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
         self.event = event
-        super(Event,self).__init__(event.short)
+        super(Event,self).__init__('')
+        urwid.connect_signal(self, 'click', callback)
+        cursor_pos_in_button = 0
+        attr_map  = None
+        focus_map = 'selected'
+        self._w  = urwid.AttrMap(urwid.SelectableIcon(event.short, cursor_pos_in_button), attr_map, focus_map)
 
 ### never finished this thought, but seems like there's decent progress here
 # class JobItem(urwid.Text):

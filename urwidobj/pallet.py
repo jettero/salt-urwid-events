@@ -1,12 +1,14 @@
 
 _PALLET = {
     'main': {
-        'status': ('yellow', 'darkblue',),
+        'status':   ('yellow', 'dark blue'),
+        'selected': ( 'white', 'dark blue'),
     }
 }
 
 
-def pallet(group='main'):
+def get_pallet(group='main'):
     p = _PALLET.get(group, _PALLET['main'])
+    p = [ (k,) + p[k] for k in sorted(p) ]
 
-    return [ (k,) + p[k] for sorted(p) ]
+    return p
