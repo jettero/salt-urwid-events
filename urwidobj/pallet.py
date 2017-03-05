@@ -1,8 +1,8 @@
 
 _PALLET = {
     'main': {
-        'status':   ('yellow', 'dark blue'),
-        'selected': ( 'white', 'dark blue'),
+        'status':   (     'yellow', 'dark blue'),
+        'selected': ( 'light blue',   'default'),
     }
 }
 

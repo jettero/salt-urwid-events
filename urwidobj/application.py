@@ -21,7 +21,7 @@ class EventApplication(object):
         self.log = misc.setup_file_logger(args, 'urwidobj.EventApplication')
 
         self.events = []
-        self.events_listwalker = urwid.SimpleListWalker(self.events)
+        self.events_listwalker = urwid.SimpleFocusListWalker(self.events)
         self.events_listbox = urwid.ListBox(self.events_listwalker)
         self.main_frame = urwid.Frame(
             self.events_listbox,
@@ -82,6 +82,11 @@ class EventApplication(object):
         self.log.debug('handle_salt_event()')
         evw = wrapper.Event(event, self.event_button_click)
         self.events_listwalker.append(evw)
+        gf1 = self.events_listwalker.get_focus()[1]
+        gfn = self.events_listwalker.get_next(gf1)
+        self.log.debug('gf1={0} gfn={1} evw={2}'.format(gf1, gfn, evw))
+        if gfn[0] is evw:
+            self.events_listwalker.set_focus(gfn[1])
 
     def handle_salt_data(self, data):
         self.log.debug('handle_salt_data(evno={0})'.format(data.get('_evno')))

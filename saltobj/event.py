@@ -134,7 +134,9 @@ class Event(object):
 
     @property
     def short(self):
-        return '#{0.evno} tag={0.tag} ret={0.retcode}'.format(self)
+        if hasattr(self,'retcode'):
+            return '#{0.evno} tag={0.tag} ret={0.retcode}'.format(self)
+        return '#{0.evno} tag={0.tag}'.format(self)
 
     @classmethod
     def _match(cls, in_str, pat):
