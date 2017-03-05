@@ -6,7 +6,6 @@ _PALLET = {
     }
 }
 
-
 def get_pallet(group='main'):
     p = _PALLET.get(group, _PALLET['main'])
     p = [ (k,) + p[k] for k in sorted(p) ]
