@@ -6,7 +6,7 @@ from fnmatch import fnmatch
 
 NA = '<n/a>'
 
-STR_BLACKLIST = ('tag_match', 'raw', 'dat', )
+STR_BLACKLIST = ( 'tag_match', 'raw', 'dat', 'long', 'short', 'evno' )
 
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
@@ -131,6 +131,10 @@ class Event(object):
     @property
     def evno(self):
         return self.raw.get('_evno')
+
+    @property
+    def long(self):
+        return self.__str__()
 
     @property
     def short(self):
