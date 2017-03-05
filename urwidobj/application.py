@@ -41,6 +41,9 @@ class EventApplication(object):
                 del _kw['screen']
             self.loop = urwid.MainLoop(*_a, **_kw)
 
+        self.show_cursor = urwid.escape.SHOW_CURSOR
+        urwid.escape.SHOW_CURSOR = ''
+
         self._write_fd = self.loop.watch_pipe(self.got_pipe_data)
         self.log.debug('urwid.loop.watch_pipe() write_fd={0}'.format(self._write_fd))
         self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
@@ -63,6 +66,7 @@ class EventApplication(object):
         self.sevent.see_ya()
 
     def see_ya(self,*x):
+        self.loop.screen.write( self.show_cursor ) # urwid's ability to do this was disabled
         if len(x):
             self.log.debug("received signal={0}".format(x[0]))
         self.sevent.see_ya()
