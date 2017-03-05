@@ -20,6 +20,16 @@ class EventApplication(object):
         self.status_txt = urwid.Text(('status', u"wating for events"))
         self.log = misc.setup_file_logger(args, 'urwidobj.EventApplication')
 
+        ############# OOM
+        # I'm shocked how often urwid and/or the fork goes completely wonky and
+        # newks the whole system until OOM rescues it.
+        my_oom_adj = '/proc/{pid}/oom_score_adj'.format( pid=os.getpid() )
+        if os.path.isfile(my_oom_adj):
+            self.log.info("setting {0} to 1000".format(my_oom_adj))
+            with open(my_oom_adj, 'w') as fh:
+                fh.write('1000')
+        ############# /OOM
+
         self.events = []
         self.events_listwalker = urwid.SimpleFocusListWalker(self.events)
         self.events_listbox = urwid.ListBox(self.events_listwalker)
