@@ -87,6 +87,8 @@ class EventApplication(object):
 
     def event_button_click(self, evw):
         self.log.debug('event_button_click(evw={0})'.format(evw))
+        self.log.debug("main_frame.contents[body]={0}".format(self.main_frame.contents['body']))
+        self.main_frame.body = urwid.Filler( urwid.Text(evw.event.long) )
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
