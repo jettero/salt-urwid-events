@@ -38,6 +38,16 @@ class EventApplication(object):
             footer=urwid.AttrMap(self.status_txt, 'status')
         )
 
+        urwid.command_map['h'] = urwid.CURSOR_LEFT
+        urwid.command_map['j'] = urwid.CURSOR_DOWN
+        urwid.command_map['k'] = urwid.CURSOR_UP
+        urwid.command_map['l'] = urwid.CURSOR_RIGHT
+
+        urwid.command_map['ctrl b'] = urwid.CURSOR_PAGE_UP
+        urwid.command_map['ctrl f'] = urwid.CURSOR_PAGE_DOWN
+
+        self.page_stack = [self.events_listbox]
+
         _a   = (self.main_frame,self.pallet,)
         _kw = { 'unhandled_input': self.exit_on_q }
         try:
@@ -61,8 +71,13 @@ class EventApplication(object):
 
     def exit_on_q(self,input):
         self.log.debug('got keyboard input: {0}'.format(input))
-        if input in ('q', 'Q'):
-            self.see_ya('q')
+
+        if input in ('left','h', 'esc'):
+            self.pop_page()
+
+        elif input in ('q', 'Q', 'meta q', 'meta Q'):
+            if not self.pop_page():
+                self.see_ya('q')
 
     def sig(self, signo,frame):
         if signo in (signal.SIGINT,):
@@ -85,10 +100,24 @@ class EventApplication(object):
     def status(self,status):
         self.status_txt.set_text(('status', status))
 
+    def push_page(self, widget):
+        if self.page_stack[-1] is not widget:
+            self.page_stack.append(widget)
+            self.main_frame.body = widget
+            return True
+        return False
+
+    def pop_page(self):
+        if len(self.page_stack) > 1:
+            self.page_stack.pop()
+            self.main_frame.body = self.page_stack[-1]
+            return True
+        return False
+
     def event_button_click(self, evw):
         self.log.debug('event_button_click(evw={0})'.format(evw))
         self.log.debug("main_frame.contents[body]={0}".format(self.main_frame.contents['body']))
-        self.main_frame.body = urwid.Filler( urwid.Text(evw.event.long) )
+        self.push_page( urwid.Filler(urwid.Text(evw.event.long)) )
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
