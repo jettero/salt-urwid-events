@@ -18,7 +18,8 @@ class EventApplication(object):
 
         self._pdat= ''
 
-        self.status_txt = urwid.Text(('status', u"wating for events"))
+        self.status_txt    = urwid.Text(('status', u"wating for events"))
+        self.key_hints_txt = urwid.Text(('status', u''), align='right')
         self.log = misc.setup_file_logger(args, 'urwidobj.EventApplication')
 
         ############# OOM
@@ -36,7 +37,10 @@ class EventApplication(object):
         self.events_listbox = urwid.ListBox(self.events_listwalker)
         self.main_frame = urwid.Frame(
             self.events_listbox,
-            footer=urwid.AttrMap(self.status_txt, 'status')
+            footer=urwid.Columns([
+                urwid.AttrMap(self.status_txt,    'status'),
+                urwid.AttrMap(self.key_hints_txt, 'status'),
+            ], min_width=20)
         )
 
         command_map_vim.add_vim_keys()
@@ -95,11 +99,17 @@ class EventApplication(object):
     def status(self,status):
         self.status_txt.set_text(('status', status))
 
+    def update_key_hints(self):
+        body_widget = self.main_frame.body
+        key_hints = body_widget.key_hints if hasattr(body_widget,'key_hints') else ''
+        self.key_hints_txt.set_text( key_hints )
+
     def push_page(self, widget):
         if self.page_stack[-1] is not widget:
             self.page_stack.append(widget)
             self.main_frame.body = widget
             self.log.debug("push page={0}".format(widget))
+            self.update_key_hints()
             return True
         self.log.debug("skipping push page={0} (already last on stack)".format(widget))
         return False
@@ -110,6 +120,7 @@ class EventApplication(object):
             self.log.debug("popping page (depth={0})".format(l))
             self.page_stack.pop()
             self.main_frame.body = self.page_stack[-1]
+            self.update_key_hints()
             return True
         self.log.debug("skipping pop page (depth={0})".format(l))
         return False

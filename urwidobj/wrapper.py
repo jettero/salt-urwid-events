@@ -28,14 +28,21 @@ class EventViewer(urwid.ListBox):
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.long_txt = urwid.Text(self.event.outputter)
+
+        if hasattr(event, 'outputter'):
+            self.key_hints = '[f]ormat-{0} [r]aw-json'.format(self.event.dat.get('out','nested'))
+            self.long_txt = urwid.Text(self.event.outputter)
+        else:
+            self.key_hints = ''
+            self.long_txt = urwid.Text(self.event.long)
+
         lw = urwid.SimpleFocusListWalker([self.long_txt])
         super(EventViewer, self).__init__(lw)
 
     def keypress(self,*a,**kw):
         key = super(EventViewer,self).keypress(*a,**kw)
 
-        if key: # if this is true, super() didn't handle the keypress
+        if key and self.key_hints: # if key is true, super() didn't handle the keypress
             if key in ('r',):
                 self.log.debug('setting raw output')
                 self.long_txt.set_text( self.event.long )

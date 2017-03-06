@@ -156,10 +156,6 @@ class Event(object):
         return json.dumps(self.raw, indent=2)
 
     @property
-    def outputter(self):
-        return self.long # to be overridden by the subclasses
-
-    @property
     def short(self):
         if hasattr(self,'retcode'):
             return '#{0.evno} tag={0.tag} ret={0.retcode}'.format(self)
