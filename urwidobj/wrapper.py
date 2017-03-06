@@ -23,11 +23,12 @@ class EventButton(urwid.Button):
             self._viewer = EventViewer(self.event)
         return self._viewer
 
-class EventViewer(urwid.Filler):
+class EventViewer(urwid.ListBox):
     def __init__(self,event):
         self.event = event
         self.long_txt = urwid.Text(self.event.long)
-        super(EventViewer, self).__init__(self.long_txt, valign='top')
+        lw = urwid.SimpleFocusListWalker([self.long_txt])
+        super(EventViewer, self).__init__(lw)
 
 
 ### never finished this thought, but seems like there's decent progress here

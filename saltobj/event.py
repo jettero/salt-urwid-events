@@ -1,6 +1,6 @@
 # coding: utf-8
 
-import logging, importlib
+import logging, copy
 import json, urwid, inspect, re
 import dateutil.parser, datetime
 from fnmatch import fnmatch
@@ -130,22 +130,29 @@ class Event(object):
         self.dtime = dateutil.parser.parse(self.stamp) if self.stamp else None
 
     @property
+    def minion_opts(self):
+        if not hasattr(self,'_minion_opts'):
+            self._minion_opts = salt.config.minion_config('/etc/salt/minion')
+        return copy.deepcopy(self._minion_opts)
+
+    @property
+    def master_opts(self):
+        if not hasattr(self,'_master_opts'):
+            self._master_opts = salt.config.master_config('/etc/salt/master')
+        return copy.deepcopy(self._master_opts)
+
+    @property
+    def salt_opts(self):
+        o = self.minion_opts
+        o.update( self.master_opts )
+        return o
+
+    @property
     def evno(self):
         return self.raw.get('_evno')
 
     @property
     def long(self):
-        dat = self.raw.get('data', {})
-        outputter = dat.get('out', 'nested')
-        if outputter:
-            self.log.debug('trying to apply outputter')
-            if not hasattr(self,'opts'):
-                self.opts = salt.config.minion_config('/etc/salt/minion')
-                self.opts.update( salt.config.master_config('/etc/salt/master') )
-                self.opts['color'] = False # XXX be super nice to show color...
-            res = salt.output.out_format(dat, outputter, self.opts)
-            if res:
-                return res
         return json.dumps(self.raw, indent=2)
 
     @property
@@ -222,6 +229,21 @@ class Return(JobEvent):
         self.retcode = self.dat.get('retcode', 0)
         self.returnd = self.dat.get('return', 0)
         self.id      = self.dat.get('id', NA)
+
+    @property
+    def long(self):
+        dat = self.raw.get('data', {})
+        outputter = dat.get('out', 'nested')
+        return_data = dat.get('return', dat)
+        to_output = { dat.get('id', 'local'): return_data }
+        if outputter:
+            self.log.debug('trying to apply outputter')
+            __opts__ = self.salt_opts
+            __opts__['color'] = False # XXX until we figure out how to transcribe ansi colors
+            res = salt.output.out_format(to_output, outputter, __opts__)
+            if res:
+                return res
+        return super(Return,self).long
 
 def extract_examples(classify=True):
     jsons = []
