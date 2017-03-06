@@ -132,7 +132,7 @@ class Event(object):
     @property
     def long(self):
         import json
-        return json.dumps(self.raw, indent=2)
+        return json.dumps(self.raw.get('data', self.raw), indent=2)
 
     @property
     def short(self):
