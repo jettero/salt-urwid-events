@@ -1,8 +1,11 @@
 # coding: utf-8
 
+import logging, importlib
 import json, urwid, inspect, re
 import dateutil.parser, datetime
 from fnmatch import fnmatch
+
+import salt.config, salt.output
 
 NA = '<n/a>'
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
@@ -114,6 +117,7 @@ class Event(object):
     tag_match = None
 
     def __init__(self, raw):
+        self.log = logging.getLogger(self.__class__.__name__)
         self.raw = raw
         self.tag = self.raw.get('tag', NA)
         self.dat = self.raw.get('data', {})
@@ -131,8 +135,18 @@ class Event(object):
 
     @property
     def long(self):
-        import json
-        return json.dumps(self.raw.get('data', self.raw), indent=2)
+        dat = self.raw.get('data', {})
+        outputter = dat.get('out', 'nested')
+        if outputter:
+            self.log.debug('trying to apply outputter')
+            if not hasattr(self,'opts'):
+                self.opts = salt.config.minion_config('/etc/salt/minion')
+                self.opts.update( salt.config.master_config('/etc/salt/master') )
+                self.opts['color'] = False # XXX be super nice to show color...
+            res = salt.output.out_format(dat, outputter, self.opts)
+            if res:
+                return res
+        return json.dumps(self.raw, indent=2)
 
     @property
     def short(self):
