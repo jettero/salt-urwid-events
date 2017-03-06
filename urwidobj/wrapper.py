@@ -1,18 +1,34 @@
 import saltobj.event
 import urwid
+import command_map_vim
 
-class Event(urwid.Button):
+class EventButton(urwid.Button):
+    _viewer = None
 
     def __init__(self, event, callback):
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
         self.event = event
-        super(Event,self).__init__('')
+        super(EventButton,self).__init__('')
         urwid.connect_signal(self, 'click', callback)
         cursor_pos_in_button = 0
         attr_map  = None
         focus_map = 'selected'
         self._w  = urwid.AttrMap(urwid.SelectableIcon(event.short, cursor_pos_in_button), attr_map, focus_map)
+        command_map_vim.add_right_activate(self)
+
+    @property
+    def viewer(self):
+        if not self._viewer:
+            self._viewer = EventViewer(self.event)
+        return self._viewer
+
+class EventViewer(urwid.Filler):
+    def __init__(self,event):
+        self.event = event
+        self.long_txt = urwid.Text(self.event.long)
+        super(EventViewer, self).__init__(self.long_txt, valign='top')
+
 
 ### never finished this thought, but seems like there's decent progress here
 # class JobItem(urwid.Text):

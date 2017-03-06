@@ -6,6 +6,7 @@ import urwid
 import misc
 import saltobj
 import wrapper
+import command_map_vim
 from pallet import get_pallet
 
 class EventApplication(object):
@@ -38,13 +39,7 @@ class EventApplication(object):
             footer=urwid.AttrMap(self.status_txt, 'status')
         )
 
-        urwid.command_map['h'] = urwid.CURSOR_LEFT
-        urwid.command_map['j'] = urwid.CURSOR_DOWN
-        urwid.command_map['k'] = urwid.CURSOR_UP
-        urwid.command_map['l'] = urwid.CURSOR_RIGHT
-
-        urwid.command_map['ctrl b'] = urwid.CURSOR_PAGE_UP
-        urwid.command_map['ctrl f'] = urwid.CURSOR_PAGE_DOWN
+        command_map_vim.add_vim_keys()
 
         self.page_stack = [self.events_listbox]
 
@@ -72,7 +67,7 @@ class EventApplication(object):
     def exit_on_q(self,input):
         self.log.debug('got keyboard input: {0}'.format(input))
 
-        if input in ('left','h', 'esc'):
+        if input in ('left'):
             self.pop_page()
 
         elif input in ('q', 'Q', 'meta q', 'meta Q'):
@@ -122,11 +117,11 @@ class EventApplication(object):
     def event_button_click(self, evw):
         self.log.debug('event_button_click(evw={0})'.format(evw))
         self.log.debug("main_frame.contents[body]={0}".format(self.main_frame.contents['body']))
-        self.push_page( urwid.Filler(urwid.Text(evw.event.long)) )
+        self.push_page( evw.viewer )
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
-        evw = wrapper.Event(event, self.event_button_click)
+        evw = wrapper.EventButton(event, self.event_button_click)
         self.events_listwalker.append(evw)
         gf1 = self.events_listwalker.get_focus()[1]
         gfn = self.events_listwalker.get_next(gf1)
