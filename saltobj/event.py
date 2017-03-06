@@ -5,7 +5,7 @@ import json, urwid, inspect, re
 import dateutil.parser, datetime
 from fnmatch import fnmatch
 
-import salt.config, salt.output
+import salt.output
 
 NA = '<n/a>'
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
