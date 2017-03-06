@@ -158,10 +158,15 @@ class ForkedSaltPipeWriter(object):
 
     def main_loop(self, callback):
         while True:
+            if not os.path.isfile('/proc/{0.ppid}/cmdline'.format(self)):
+                self.log.debug("our ppid={0.ppid} seems to be missing. breaking mainloop now".format(self))
+                return
+
             j = self.next()
             if j is None:
                 self.log.debug('null event, re-looping')
                 continue
+
             self.log.debug("main_loop callback with {0} byte(s)".format(len(j)))
             callback(j)
 
