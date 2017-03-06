@@ -1,8 +1,10 @@
 # coding: utf-8
 
 import os, copy, json, signal, logging
-import salt.config, salt.minion, salt.config
+import salt.minion
 from salt.version import __version__ as saltversion
+
+from saltobj.config import SaltConfigMixin
 
 RS = '\x1e' # default suffix of \x1e is ascii for record
             # separator RS
@@ -46,7 +48,7 @@ class MasterMinionJidNexter(object):
             except StopIteration:
                 self.g = False
 
-class ForkedSaltPipeWriter(object):
+class ForkedSaltPipeWriter(SaltConfigMixin):
     ppid = kpid = None
     evno = 0
 
@@ -74,17 +76,11 @@ class ForkedSaltPipeWriter(object):
 
     def _init2(self):
         # look at /usr/lib/python2.7/site-packages/salt/modules/state.py in event()
-        self.master_config = salt.config.master_config('/etc/salt/master')
-        self.minion_config = salt.config.minion_config('/etc/salt/minion')
-
         self.log = logging.getLogger('ForkedSaltPipeWriter')
 
         self.get_event_args = { 'full': True }
         if saltversion.startswith('2016'):
             self.get_event_args['auto_reconnect'] = True
-
-        self.config = copy.deepcopy(self.minion_config)
-        self.config.update( copy.deepcopy(self.master_config) )
 
         if self.replay_file:
             print "opening replay_file={0}".format(self.replay_file)
@@ -93,7 +89,7 @@ class ForkedSaltPipeWriter(object):
             self.replay_fh = None
 
         if self.replay_job_cache:
-            self.mmjn = MasterMinionJidNexter(self.config)
+            self.mmjn = MasterMinionJidNexter(self.salt_opts)
 
         if self.replay_only:
             self.sevent = None
@@ -104,9 +100,9 @@ class ForkedSaltPipeWriter(object):
             # which is really salt.utils.event.get_event()
             self.sevent = salt.utils.event.get_event(
                     'master', # node= master events or minion events
-                    self.config['sock_dir'],
-                    self.config['transport'],
-                    opts=self.config,
+                    self.salt_opts['sock_dir'],
+                    self.salt_opts['transport'],
+                    opts=self.salt_opts,
                     listen=True)
 
     def add_preproc(self, *preproc):

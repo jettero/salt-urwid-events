@@ -5,6 +5,9 @@ import salt.config
 DEFAULT_UEVENT_OPTS = {
     'conf_file': '/etc/salt/uevent',
     'color': False,
+    'state_tabular': True,
+    'state_output': 'changes',
+    'state_verbose': False,
 }
 
 class SaltConfigMixin(object):
@@ -16,26 +19,27 @@ class SaltConfigMixin(object):
         c = copy.deepcopy( getattr(self,attr) )
         if not isinstance(c,dict):
             return {}
-        if 'conf_file' in c:
-            c.pop('conf_file')
         return c
 
     @property
     def minion_opts(self):
         if not self._minion_opts:
-            self._minion_opts = salt.config.minion_config(None)
+            self._minion_opts = salt.config.minion_config('/etc/salt/minion')
         return self._normalize_and_copy('_minion_opts')
 
     @property
     def master_opts(self):
         if not self._master_opts:
-            self._master_opts = salt.config.master_config(None)
+            self._master_opts = salt.config.master_config('/etc/salt/master')
         return self._normalize_and_copy('_master_opts')
 
     @property
     def my_opts(self):
         if not self._my_opts:
-            self._my_opts = salt.config.load_config(None, 'SALT_UEVENT_CONFIG', DEFAULT_UEVENT_OPTS)
+            self._my_opts = DEFAULT_UEVENT_OPTS.copy()
+            self._my_opts.update(
+                salt.config.load_config('/etc/salt/uevent', 'SALT_UEVENT_CONFIG', DEFAULT_UEVENT_OPTS['conf_file'])
+            )
         return self._normalize_and_copy('_my_opts')
 
     @property
@@ -43,9 +47,10 @@ class SaltConfigMixin(object):
         o = self.minion_opts
         o.update( self.master_opts )
         o.update( self.my_opts )
+        o.pop('conf_file')
         return o
 
 def get_config():
     class GenericConfigObject(SaltConfigMixin):
         pass
-    return GenericConfigObject().salt_opts
+    return GenericConfigObject()

@@ -7,6 +7,8 @@ from fnmatch import fnmatch
 
 import salt.output
 
+from saltobj.config import SaltConfigMixin
+
 NA = '<n/a>'
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
@@ -113,7 +115,7 @@ def classify_event(json_data):
 
     return cls(raw)
 
-class Event(object):
+class Event(SaltConfigMixin):
     tag_match = None
 
     def __init__(self, raw):
@@ -128,24 +130,6 @@ class Event(object):
 
         self.stamp = self.dat.get('_stamp')
         self.dtime = dateutil.parser.parse(self.stamp) if self.stamp else None
-
-    @property
-    def minion_opts(self):
-        if not hasattr(self,'_minion_opts'):
-            self._minion_opts = salt.config.minion_config('/etc/salt/minion')
-        return copy.deepcopy(self._minion_opts)
-
-    @property
-    def master_opts(self):
-        if not hasattr(self,'_master_opts'):
-            self._master_opts = salt.config.master_config('/etc/salt/master')
-        return copy.deepcopy(self._master_opts)
-
-    @property
-    def salt_opts(self):
-        o = self.minion_opts
-        o.update( self.master_opts )
-        return o
 
     @property
     def evno(self):
@@ -238,11 +222,9 @@ class Return(JobEvent):
         to_output = { dat.get('id', 'local'): return_data }
         if outputter:
             self.log.debug('trying to apply outputter')
-            __opts__ = self.salt_opts
-            __opts__['color'] = False # XXX until we figure out how to transcribe ansi colors
-            res = salt.output.out_format(to_output, outputter, __opts__)
+            res = salt.output.out_format(to_output, outputter, self.salt_opts)
             if res:
-                return res
+                return res.rstrip().replace('\x09','        ')
         return self.long
 
 def extract_examples(classify=True):
