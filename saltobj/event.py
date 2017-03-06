@@ -156,6 +156,10 @@ class Event(object):
         return json.dumps(self.raw, indent=2)
 
     @property
+    def outputter(self):
+        return self.long # to be overridden by the subclasses
+
+    @property
     def short(self):
         if hasattr(self,'retcode'):
             return '#{0.evno} tag={0.tag} ret={0.retcode}'.format(self)
@@ -231,7 +235,7 @@ class Return(JobEvent):
         self.id      = self.dat.get('id', NA)
 
     @property
-    def long(self):
+    def outputter(self):
         dat = self.raw.get('data', {})
         outputter = dat.get('out', 'nested')
         return_data = dat.get('return', dat)
@@ -243,7 +247,7 @@ class Return(JobEvent):
             res = salt.output.out_format(to_output, outputter, __opts__)
             if res:
                 return res
-        return super(Return,self).long
+        return self.long
 
 def extract_examples(classify=True):
     jsons = []

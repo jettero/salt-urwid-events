@@ -13,4 +13,3 @@ def add_vim_keys():
 def add_right_activate(widget):
     widget._command_map = ac = urwid.command_map.copy()
     ac['l'] = ac['right'] = urwid.ACTIVATE
-

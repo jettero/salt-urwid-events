@@ -1,6 +1,7 @@
 import saltobj.event
 import urwid
 import command_map_vim
+import logging
 
 class EventButton(urwid.Button):
     _viewer = None
@@ -25,11 +26,27 @@ class EventButton(urwid.Button):
 
 class EventViewer(urwid.ListBox):
     def __init__(self,event):
+        self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.long_txt = urwid.Text(self.event.long)
+        self.long_txt = urwid.Text(self.event.outputter)
         lw = urwid.SimpleFocusListWalker([self.long_txt])
         super(EventViewer, self).__init__(lw)
 
+    def keypress(self,*a,**kw):
+        key = super(EventViewer,self).keypress(*a,**kw)
+
+        if key: # if this is true, super() didn't handle the keypress
+            if key in ('r',):
+                self.log.debug('setting raw output')
+                self.long_txt.set_text( self.event.long )
+                return # we handled the keystroke
+
+            if key in ('f',):
+                self.log.debug('setting formatted output')
+                self.long_txt.set_text( self.event.outputter )
+                return # we handled the keystroke
+
+        return key # returning this means we didn't deal with it
 
 ### never finished this thought, but seems like there's decent progress here
 # class JobItem(urwid.Text):
