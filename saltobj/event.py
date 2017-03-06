@@ -5,9 +5,6 @@ import dateutil.parser, datetime
 from fnmatch import fnmatch
 
 NA = '<n/a>'
-
-STR_BLACKLIST = ( 'tag_match', 'raw', 'dat', 'long', 'short', 'evno' )
-
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
 class Job(object):
@@ -134,7 +131,8 @@ class Event(object):
 
     @property
     def long(self):
-        return self.__str__()
+        import json
+        return json.dumps(self.raw, indent=2)
 
     @property
     def short(self):
@@ -153,21 +151,7 @@ class Event(object):
 
     def __repr__(self):
         return '{0.__class__.__name__}({0.tag})'.format(self)
-
-    def __str__(self):
-        cn = self.__class__.__name__
-        ret = { cn: {} }
-        dat = ret[cn]
-        for k in dir(self):
-            if k.startswith('_') or k in STR_BLACKLIST:
-                continue
-            v = getattr(self,k)
-            if isinstance(v,dict) or isinstance(v,unicode) or isinstance(v,str):
-                dat[k] = v
-            if isinstance(v,datetime.datetime):
-                dat[k] = v.ctime()
-        import pprint
-        return pprint.pformat( ret, indent=2 )
+    __str__ = __repr__
 
 class Auth(Event):
     tag_match = 'salt/auth'
