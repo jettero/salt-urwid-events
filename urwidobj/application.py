@@ -104,14 +104,19 @@ class EventApplication(object):
         if self.page_stack[-1] is not widget:
             self.page_stack.append(widget)
             self.main_frame.body = widget
+            self.log.debug("push page={0}".format(widget))
             return True
+        self.log.debug("skipping push page={0} (already last on stack)".format(widget))
         return False
 
     def pop_page(self):
-        if len(self.page_stack) > 1:
+        l = len(self.page_stack)
+        if l > 1:
+            self.log.debug("popping page (depth={0})".format(l))
             self.page_stack.pop()
             self.main_frame.body = self.page_stack[-1]
             return True
+        self.log.debug("skipping pop page (depth={0})".format(l))
         return False
 
     def event_button_click(self, evw):
