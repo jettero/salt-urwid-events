@@ -160,7 +160,8 @@ class ForkedSaltPipeWriter(object):
         while True:
             if not os.path.isfile('/proc/{0.ppid}/cmdline'.format(self)):
                 self.log.debug("our ppid={0.ppid} seems to be missing. breaking mainloop now".format(self))
-                return
+                self.see_ya()
+                raise Exception("dead")
 
             j = self.next()
             if j is None:
