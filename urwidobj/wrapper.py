@@ -29,12 +29,15 @@ class EventViewer(urwid.ListBox):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
 
+        self.outputs = [ 'long' ]
+        self.opos = 0
+
         if hasattr(event, 'outputter'):
-            self.key_hints = '[f]ormat-{0} [r]aw-json'.format(self.event.dat.get('out','nested'))
-            self.long_txt = urwid.Text(self.event.outputter)
-        else:
-            self.key_hints = ''
-            self.long_txt = urwid.Text(self.event.long)
+            self.key_hints = '[m]ode'
+            self.outputs.append('outputter')
+
+        self.long_txt = urwid.Text( getattr(self.event,self.outputs[-1]) )
+        self.opos = len( self.outputs ) -1
 
         lw = urwid.SimpleFocusListWalker([self.long_txt])
         super(EventViewer, self).__init__(lw)
@@ -43,14 +46,10 @@ class EventViewer(urwid.ListBox):
         key = super(EventViewer,self).keypress(*a,**kw)
 
         if key and self.key_hints: # if key is true, super() didn't handle the keypress
-            if key in ('r',):
-                self.log.debug('setting raw output')
-                self.long_txt.set_text( self.event.long )
-                return # we handled the keystroke
-
-            if key in ('f',):
-                self.log.debug('setting formatted output')
-                self.long_txt.set_text( self.event.outputter )
+            if key in ('m',):
+                self.log.debug('swapping mode {0}[({1}+1)%len]'.format(self.outputs,self.opos))
+                self.opos = (self.opos + 1) % len(self.outputs)
+                self.long_txt.set_text( getattr(self.event,self.outputs[self.opos]) )
                 return # we handled the keystroke
 
         return key # returning this means we didn't deal with it

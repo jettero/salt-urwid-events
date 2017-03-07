@@ -223,6 +223,15 @@ class Return(JobEvent):
         self.returnd = self.dat.get('return', 0)
         self.id      = self.dat.get('id', NA)
 
+        self.ooverrides = {}
+
+    @property
+    def outputter_opts(self):
+        return {
+            '[o]utput-{0}':  ['v', 'state_output', ['full', 'changes', 'terse', 'mixed']],
+            '[v]erbose':     ['o', 'state_verbose', [True,False]],
+        }
+
     @property
     def outputter(self):
         dat = self.raw.get('data', {})
@@ -231,11 +240,13 @@ class Return(JobEvent):
         to_output = { dat.get('id', 'local'): return_data }
         if outputter:
             self.log.debug('trying to apply outputter')
+            __opts__ = self.salt_opts
             res = salt.output.out_format(to_output, outputter, self.salt_opts)
             if res:
                 ret = [
-                    'jid: {0}'.format(self.jid),
-                    'fun: {0} {1}'.format(self.fun, self.args_str),
+                    'jid:  {0}'.format(self.jid),
+                    'fun:  {0} {1}'.format(self.fun, self.args_str),
+                    'time: {0}'.format(self.dtime.ctime()),
                     '', res.rstrip()
                 ]
                 return '\n'.join(ret)
