@@ -181,6 +181,15 @@ class JobEvent(Event):
             if self.args is None:
                 self.args = []
 
+        asr = [ ]
+        for x in self.args:
+            if isinstance(x,dict):
+                for k,v in x.iteritems():
+                    asr.append('{0}={1}'.format(k,v))
+            else:
+                asr.append(str(x))
+        self.args_str = ' '.join(asr)
+
 class ExpectedReturns(Event):
     tag_match = re.compile(r'\d+')
 
@@ -224,7 +233,12 @@ class Return(JobEvent):
             self.log.debug('trying to apply outputter')
             res = salt.output.out_format(to_output, outputter, self.salt_opts)
             if res:
-                return res.rstrip().replace('\x09','        ')
+                ret = [
+                    'jid: {0}'.format(self.jid),
+                    'fun: {0} {1}'.format(self.fun, self.args_str),
+                    '', res.rstrip()
+                ]
+                return '\n'.join(ret)
         return self.long
 
 def extract_examples(classify=True):
