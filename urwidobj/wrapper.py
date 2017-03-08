@@ -25,20 +25,18 @@ class EventButton(urwid.Button):
         return self._viewer
 
 class EventViewer(urwid.ListBox):
+    key_hints = ''
+    opos = 0
+
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-
         self.outputs = [ 'long' ]
-        self.opos = 0
-
         if hasattr(event, 'outputter'):
             self.key_hints = '[m]ode'
             self.outputs.append('outputter')
-
         self.long_txt = urwid.Text( getattr(self.event,self.outputs[-1]) )
         self.opos = len( self.outputs ) -1
-
         lw = urwid.SimpleFocusListWalker([self.long_txt])
         super(EventViewer, self).__init__(lw)
 

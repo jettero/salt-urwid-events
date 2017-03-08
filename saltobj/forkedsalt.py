@@ -34,7 +34,7 @@ class MasterMinionJidNexter(object):
             # again
 
             load = self.get_load(i)
-            mini = load.pop('Minions')
+            mini = load.pop('Minions', ['local'])
 
             jid = load.get('jid', '<>')
             for id in mini:
@@ -89,7 +89,7 @@ class ForkedSaltPipeWriter(SaltConfigMixin):
             self.replay_fh = None
 
         if self.replay_job_cache:
-            self.mmjn = MasterMinionJidNexter(self.salt_opts)
+            self.mmjn = MasterMinionJidNexter(self.mmin_opts)
 
         if self.replay_only:
             self.sevent = None

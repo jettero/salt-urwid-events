@@ -43,10 +43,15 @@ class SaltConfigMixin(object):
         return self._normalize_and_copy('_my_opts')
 
     @property
-    def salt_opts(self):
+    def mmin_opts(self):
         o = self.minion_opts
         o.update( self.master_opts )
         o.update( self.my_opts )
+        return o
+
+    @property
+    def salt_opts(self):
+        o = self.mmin_opts
         o.pop('conf_file')
         return o
 
