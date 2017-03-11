@@ -3,6 +3,22 @@ import urwid
 import command_map_vim
 import logging
 
+from misc.xlateansi import xlate_ansi, format_code
+
+class AnsiableText(urwid.Text):
+    def __init__(self, *a,**kw):
+        self.log = logging.getLogger(self.__class__.__name__)
+        super(AnsiableText,self).__init__(*a,**kw)
+
+    def set_text(self,text):
+        if not isinstance(text,(tuple,list)):
+            text = xlate_ansi(text)
+        super(AnsiableText,self).set_text( text )
+
+    def format_code(self, code):
+        fc = format_code(code)
+        super(AnsiableText,self).set_text(fc)
+
 class EventButton(urwid.Button):
     _viewer = None
 
@@ -35,7 +51,7 @@ class EventViewer(urwid.ListBox):
         if hasattr(event, 'outputter'):
             self.key_hints = '[m]ode'
             self.outputs.append('outputter')
-        self.long_txt = urwid.Text( getattr(self.event,self.outputs[-1]) )
+        self.long_txt = AnsiableText( getattr(self.event,self.outputs[-1]) )
         self.opos = len( self.outputs ) -1
         lw = urwid.SimpleFocusListWalker([self.long_txt])
         super(EventViewer, self).__init__(lw)

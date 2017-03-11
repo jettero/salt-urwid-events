@@ -4,7 +4,7 @@ import salt.config
 
 DEFAULT_UEVENT_OPTS = {
     'conf_file': '/etc/salt/uevent',
-    'color': False,
+    'color': True,
     'state_tabular': True,
     'state_output': 'changes',
     'state_verbose': False,
