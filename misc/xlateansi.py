@@ -45,6 +45,8 @@ class AnsiAttr(object):
                     # don't set the color if we don't handle it
                     # so we effectively ignore codes we don't handle
                     self.color = i
+                    if self.color is None:
+                        self.bolded = False
 
     @property
     def words(self):
