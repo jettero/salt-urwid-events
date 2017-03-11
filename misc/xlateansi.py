@@ -99,7 +99,7 @@ def xlate_ansi(x):
 
 def format_code(x, xlate=True, to_try=None, no_errors=False, with_meta=False):
     try:
-        import pygments
+        import pygments, pygments.formatters, pygments.lexers
     except Exception as e:
         print "exception trying to format code: {0}".format(e)
         return x

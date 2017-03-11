@@ -15,10 +15,6 @@ class AnsiableText(urwid.Text):
             text = xlate_ansi(text)
         super(AnsiableText,self).set_text( text )
 
-    def format_code(self, code):
-        fc = format_code(code)
-        super(AnsiableText,self).set_text(fc)
-
 class EventButton(urwid.Button):
     _viewer = None
 
@@ -47,11 +43,11 @@ class EventViewer(urwid.ListBox):
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.outputs = [ 'long' ]
+        self.outputs = [ lambda e: format_code(e.long) ]
         if hasattr(event, 'outputter'):
-            self.key_hints = '[m]ode'
-            self.outputs.append('outputter')
-        self.long_txt = AnsiableText( getattr(self.event,self.outputs[-1]) )
+            self.key_hints = '[m]ode '
+            self.outputs.append( lambda e: e.outputter )
+        self.long_txt = AnsiableText( self.outputs[-1](self.event) )
         self.opos = len( self.outputs ) -1
         lw = urwid.SimpleFocusListWalker([self.long_txt])
         super(EventViewer, self).__init__(lw)
@@ -63,7 +59,7 @@ class EventViewer(urwid.ListBox):
             if key in ('m',):
                 self.log.debug('swapping mode {0}[({1}+1)%len]'.format(self.outputs,self.opos))
                 self.opos = (self.opos + 1) % len(self.outputs)
-                self.long_txt.set_text( getattr(self.event,self.outputs[self.opos]) )
+                self.long_txt.set_text( self.outputs[self.opos](self.event) )
                 return # we handled the keystroke
 
         return key # returning this means we didn't deal with it
