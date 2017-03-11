@@ -1,7 +1,7 @@
 import os
 
 from argparser import ArgumentParser
-from xlateansi import xlateansi, splitansi
+from xlateansi import xlate_ansi, format_code
 
 def be_root_you_fool():
     import os
