@@ -1,5 +1,5 @@
 
-import re
+import re, itertools
 
 ansi_color_sequence = re.compile(r'\x1b\[([\d\;]*)m')
 
@@ -82,21 +82,45 @@ def xlate_ansi(x):
     return ret
 
 
-def format_code(x, xlate=True):
+def format_code(x, xlate=True, to_try=None, no_errors=False, with_meta=False):
     try:
         import pygments
-
-        f = pygments.formatters.TerminalFormatter()
-
-        to_try = ('json', 'yaml', 'python', 'bash')
-        for lname in to_try:
-            l = pygments.lexers.get_lexer_by_name(lname)
-            h = pygments.highlight(x,l,f)
-            if xlate:
-                return xlate_ansi( pygments.highlight(x, l, f) )
-            return h
-
     except Exception as e:
         print "exception trying to format code: {0}".format(e)
+        return x
+
+    f = pygments.formatters.TerminalFormatter()
+
+    if to_try is None:
+        to_try = ('json', 'yaml', 'python')
+
+    if not isinstance(to_try, (tuple,list)):
+        to_try = (to_try,)
+
+    best_tokens = False
+    for lname in to_try:
+        lexer = pygments.lexers.get_lexer_by_name(lname)
+        tokens,spare_tokens = itertools.tee(pygments.lex(x, lexer))
+
+        c = 0
+        for t in spare_tokens:
+            if t[0][0] == 'Error':
+                c += 1
+
+        if no_errors and c:
+            continue
+
+        if best_tokens and c >= best_tokens[0]:
+            continue
+
+        best_tokens = (c, tokens, lname)
+
+    if best_tokens:
+        formatted = pygments.format(best_tokens[1],f)
+        if xlate:
+            formatted = xlate_ansi( formatted )
+        if with_meta:
+            return {'errors': best_tokens[0], 'formatted': formatted, 'lexer': best_tokens[2]}
+        return formatted
 
     return x
