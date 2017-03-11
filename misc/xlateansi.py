@@ -3,6 +3,26 @@ import re, itertools
 
 ansi_color_sequence = re.compile(r'\x1b\[([\d\;]*)m')
 
+ANSI_PALLET16 = (
+    ('ansi-black',           'black',          'default'),
+    ('ansi-red',             'dark red',       'default'),
+    ('ansi-green',           'dark green',     'default'),
+    ('ansi-yellow',          'brown',          'default'),
+    ('ansi-blue',            'dark blue',      'default'),
+    ('ansi-magenta',         'dark magenta',   'default'),
+    ('ansi-cyan',            'dark cyan',      'default'),
+    ('ansi-white',           'light gray',     'default'),
+                                              
+    ('ansi-bold-black',      'dark gray',      'default'),
+    ('ansi-bold-red',        'light red',      'default'),
+    ('ansi-bold-green',      'light green',    'default'),
+    ('ansi-bold-yellow',     'yellow',         'default'),
+    ('ansi-bold-blue',       'light blue',     'default'),
+    ('ansi-bold-magenta',    'light magenta',  'default'),
+    ('ansi-bold-cyan',       'light cyan',     'default'),
+    ('ansi-bold-white',      'white',          'default'),
+)
+
 def split_ansi(x):
     s = ansi_color_sequence.split(x)
     return [ ('',s.pop(0)) ] + zip(s[::2],s[1::2])
