@@ -20,7 +20,6 @@ class AnsiAttr(object):
         35: 'magenta',
         36: 'cyan',
         37: 'white',
-        39: None, # reset foreground color
     }
 
     def __init__(self,blah=False):
@@ -37,50 +36,44 @@ class AnsiAttr(object):
                 except: continue
                 if not i: continue
 
-                if i == 1:
+                if i == 39:
+                    self.color = None
+                    self.bolded = False
+                elif i == 1:
                     self.bolded = True
                 elif i == 0:
                     self.bolded = False
-                elif i in self.color_map:
-                    # don't set the color if we don't handle it
-                    # so we effectively ignore codes we don't handle
+                elif self.color_map.get(i):
                     self.color = i
-                    if self.color is None:
-                        self.bolded = False
+                    self.bolded = False
 
     @property
-    def words(self):
+    def mapped(self):
+        c = self.color_map.get(self.color, 'default')
+        if c == 'default' or c is None:
+            self.bolded = False
+        return (self.bolded, c)
+
+    @property
+    def attr(self):
         if self.color is None:
             return 'default'
-
-        # XXX: handle extended colors
-        # XXX: handle background colors
-
-        if self.color == 33:
-            return "yellow" if self.bolded else "brown"
-
-        if self.color == 37:
-            return "white" if self.bolded else "light gray"
-
-        if self.color == 30:
-            return "dark gray" if self.bolded else "black"
-
-        c = self.color_map.get(self.color)
-        if c is None:
-            # this shouldn't happen since we ignore colors we don't know  in
-            # update, but better safe than sorry
-            return 'default'
-        return ("light {0}" if self.bolded else "dark {0}").format(c)
+        m = self.mapped
+        ret = ['ansi']
+        if m[0]:
+            ret.append('bold')
+        ret.append(m[1])
+        return '-'.join(ret)
 
     def __repr__(self):
-        return "AnsiAttr(bolded={0.bolded}, color={0.color})".format(self)
+        return "AnsiAttr({0.attr})".format(self)
 
 def xlate_ansi(x):
     ret = []
     aa = AnsiAttr()
     for c,t in split_ansi(x):
         aa.update(c)
-        ret.append( (aa.words,t) )
+        ret.append( (aa.attr,t) )
     return ret
 
 
