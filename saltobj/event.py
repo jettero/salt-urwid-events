@@ -288,12 +288,28 @@ class Return(JobEvent):
 
         self.ooverrides = {}
 
+    def _oo(self,o,v=None):
+        if o not in self.salt_opts:
+            return None
+        if o not in self.ooverrides:
+            self.ooverrides[o] = self.salt_opts[o]
+        if v is not None:
+            if isinstance(v,(list,tuple)):
+                try: idx = v.index(self.ooverrides[o])
+                except: idx = 0
+                idx = (idx+1) % len(v)
+                self.ooverrides[o] = v[idx]
+                self.log.debug("setting oo[{0}] to {1} (via idx={2})".format(o,v[idx],idx))
+            else:
+                self.ooverrides[o] = v
+        return self.ooverrides[o]
+
     @property
     def outputter_opts(self):
-        return {
-            '[o]utput-{0}':  ['v', 'state_output', ['full', 'changes', 'terse', 'mixed']],
-            '[v]erbose':     ['o', 'state_verbose', [True,False]],
-        }
+        return [
+            {'fmt': '[o]utput-{0}', 'key':'o', 'cb':self._oo, 'args':['state_output'],  'choices':['full', 'changes', 'terse', 'mixed']},
+            {'fmt': '[v]erbose',    'key':'v', 'cb':self._oo, 'args':['state_verbose'], 'choices':[True,False]},
+        ]
 
     @property
     def outputter(self):
@@ -304,7 +320,9 @@ class Return(JobEvent):
         if outputter:
             self.log.debug('trying to apply outputter')
             __opts__ = self.salt_opts
-            res = salt.output.out_format(to_output, outputter, self.salt_opts)
+            __opts__.update(self.ooverrides)
+            res = salt.output.out_format(to_output, outputter, self.salt_opts, **self.ooverrides)
+            self.log.debug('outputter put out {0} bytes'.format(len(res)))
             if res:
                 ret = [
                     'jid:  {0}'.format(self.jid),

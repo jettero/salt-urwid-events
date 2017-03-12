@@ -42,22 +42,75 @@ class EventButton(urwid.Button):
             self._viewer = EventViewer(self.event)
         return self._viewer
 
+class CodeViewer(AnsiableText):
+    def __init__(self,event):
+        super(CodeViewer,self).__init__( format_code(event.long) )
+
+    @property
+    def key_hints(self):
+        pass
+
+    def handle_key(self, key):
+        return key
+
+class OutputterViewer(AnsiableText):
+    def __init__(self,event):
+        self.event = event
+        super(OutputterViewer,self).__init__( event.outputter )
+
+    @property
+    def key_hints(self):
+        if hasattr(self.event, 'outputter_opts'):
+            ret = []
+            for a in self.event.outputter_opts:
+                ret.append(a['fmt'].format( a['cb'](*a['args']) ))
+            return ' '.join(ret)
+
+    def handle_key(self, key):
+        for a in self.event.outputter_opts:
+            if a['key'] == key:
+                # srsly?
+                # XXX this is a total mess. Handlers for this crap should all be moved to a mixin for
+                # both OutputterViewer (if it lives through the refactor) and the poor Return object
+                # in saltobj/event.py
+                a['cb'](*(a['args'] + [a['choices']]))
+                self.set_text( self.event.outputter )
+                return
+        return key
+
 class EventViewer(urwid.ListBox):
     key_hints = ''
     opos = 0
+    view = None
 
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.outputs = [ lambda e: format_code(e.long) ]
+        self.outputs = [ CodeViewer(event) ]
         if hasattr(event, 'outputter'):
-            self.key_hints = '[m]ode '
-            self.outputs.append( lambda e: e.outputter )
-        self.long_txt = AnsiableText( self.outputs[-1](self.event) )
+            self.outputs.append( OutputterViewer(event) )
         self.opos = len( self.outputs ) -1
-        lw = urwid.SimpleFocusListWalker([self.long_txt])
+        self.goto_view()
+        lw = urwid.SimpleFocusListWalker(self.view)
         super(EventViewer, self).__init__(lw)
         command_map_extra.add_cisco_pager_keys(self)
+
+    def goto_view(self, pos=None):
+        if pos is None:
+            pos = self.opos
+        if not self.view:
+            self.view = [self.outputs[pos]]
+        elif self.view[0] is not self.outputs[pos]:
+            self.view.append(self.outputs[pos])
+            while len(self.view) > 1:
+                self.view.pop(0)
+        urwid.emit_signal(self, 'key-hints', self.key_hints)
+
+    @property
+    def key_hints(self):
+        kh = self.view[0].key_hints
+        kh = kh + ' [m]ode' if kh else '[m]ode'
+        return kh + ' '
 
     def keypress(self,*a,**kw):
         key = super(EventViewer,self).keypress(*a,**kw)
@@ -69,7 +122,14 @@ class EventViewer(urwid.ListBox):
                 self.long_txt.set_text( self.outputs[self.opos](self.event) )
                 return # we handled the keystroke
 
+            else:
+                # XXX: this is the wrong way to do this, but I don't know how the key signals work
+                # so I'm re-inventing the wheel until I later figure it out (never?)
+                key = self.view[0].handle_key(key)
+
         return key # returning this means we didn't deal with it
+
+urwid.register_signal(EventViewer,'key-hints')
 
 ### never finished this thought, but seems like there's decent progress here
 # class JobItem(urwid.Text):
