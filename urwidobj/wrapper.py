@@ -19,6 +19,7 @@ class EventButton(urwid.Button):
     _viewer = None
 
     def __init__(self, event, callback):
+        self.log = logging.getLogger(self.__class__.__name__)
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
         self.event = event
@@ -27,8 +28,13 @@ class EventButton(urwid.Button):
         cursor_pos_in_button = 0
         attr_map  = None
         focus_map = 'selected'
-        self._w  = urwid.AttrMap(urwid.SelectableIcon(event.short, cursor_pos_in_button), attr_map, focus_map)
+        self._si = urwid.SelectableIcon(event.short, cursor_pos_in_button)
+        self._w = urwid.AttrMap(self._si, attr_map, focus_map)
         command_map_vim.add_right_activate(self)
+
+    def update_short(self):
+        if self.event.short != self._si.text:
+            self._si.set_text( self.event.short )
 
     @property
     def viewer(self):

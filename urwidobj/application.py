@@ -133,10 +133,11 @@ class EventApplication(object):
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
         evw = wrapper.EventButton(event, self.event_button_click)
+        for ev in self.events_listwalker:
+            ev.update_short()
         self.events_listwalker.append(evw)
         gf1 = self.events_listwalker.get_focus()[1]
         gfn = self.events_listwalker.get_next(gf1)
-        self.log.debug('gf1={0} gfn={1} evw={2}'.format(gf1, gfn, evw))
         if gfn[0] is evw:
             self.events_listwalker.set_focus(gfn[1])
 

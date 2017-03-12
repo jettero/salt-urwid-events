@@ -116,12 +116,32 @@ def classify_event(json_data):
     return cls(raw)
 
 misc_format_lengths = {}
-def misc_format_width(tag, the_str, lr='>'):
+def misc_format_width(tag, the_str, lr='<', max=None):
+    the_str = u'{0}'.format(the_str)
     l = misc_format_lengths.get(tag,0)
     this_len = len(the_str)
+    if max and this_len > max:
+        this_len = max
+        the_str  = the_str[0:max-1] + '…'
     if this_len > l:
         misc_format_lengths[tag] = l = this_len
     return '{0:{lr}{w}s}'.format( the_str, lr=lr, w=l )
+
+def my_jid_format(jid):
+    try:
+        jid = str(jid)
+        if len(jid) != 20:
+            return ''
+        year = jid[:4]
+        month = jid[4:6]
+        day = jid[6:8]
+        hour = jid[8:10]
+        minute = jid[10:12]
+        second = jid[12:14]
+        micro = jid[14:]
+        return '{0}-{1}-{2} {3}:{4}:{5}.{6}'.format( year,month,day,hour,minute,second,micro )
+    except:
+        return jid
 
 class Event(SaltConfigMixin):
     tag_match = None
@@ -147,10 +167,6 @@ class Event(SaltConfigMixin):
     def long(self):
         return json.dumps(self.raw, indent=2)
 
-    @property
-    def short(self):
-        return repr(self)
-
     @classmethod
     def _match(cls, in_str, pat):
         if isinstance(pat,str):
@@ -160,34 +176,33 @@ class Event(SaltConfigMixin):
     def has_tag(self, pat):
         return self._glob(self.tag, pat)
 
-    @property
-    def who(self):
-        id   = self.dat.get('id')
-        user = self.dat.get('user','').replace('sudo_','')
-        fun  = self.dat.get('fun')
-        funa = self.dat.get('fun_args')
-
-        if not id:
-            return self.tag
-
-        ret = [ misc_format_width('minion_id',id) ]
-        if user: ret.append(user)
-        if fun:
-            ret.append(misc_format_width('fun',fun))
-        if funa:
-            ret.append( json.dumps(funa) )
-
-        return ' '.join(ret)
+    def try_attr(self, attr, default=NA, no_none=False, preformat=None):
+        ret = default
+        if hasattr(self,attr): ret = getattr(self,attr)
+        elif attr in self.dat: ret = self.dat[attr]
+        elif attr in self.raw: ret = self.raw[attr]
+        if no_none and ret is None:
+            ret = default
+        if preformat and not isinstance(ret, (str,unicode)):
+            ret = preformat(ret)
+        return ret
 
     @property
-    def cname(self):
-        return misc_format_width('cname', self.__class__.__name__, lr='<')
+    def short(self):
+        columns = [
+            self.__class__.__name__,
+           #my_jid_format(self.try_attr('jid')),
+            self.try_attr('jid'),
+            self.try_attr('id'),
+            self.try_attr('fun'),
+            self.try_attr('fun_args', preformat=lambda x: json.dumps(x) if x else ''),
+        ]
+
+        columns = [ misc_format_width('short-col{0}'.format(i), c) for i,c in enumerate(columns) ]
+        return ' '.join(columns)
 
     def __repr__(self):
-        ret = '{0.evno:4d}.{0.cname} {0.who}'
-        if hasattr(self,'retcode') and self.retcode is not None:
-            ret += u' → {0.retcode}'
-        return ret.format(self)
+        return '{0.evno} {0.cname}'.format(self)
     __str__ = __repr__
 
 class Auth(Event):
