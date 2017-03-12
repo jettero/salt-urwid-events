@@ -115,6 +115,14 @@ def classify_event(json_data):
 
     return cls(raw)
 
+misc_format_lengths = {}
+def misc_format_width(tag, the_str, lr='>'):
+    l = misc_format_lengths.get(tag,0)
+    this_len = len(the_str)
+    if this_len > l:
+        misc_format_lengths[tag] = l = this_len
+    return '{0:{lr}{w}s}'.format( the_str, lr=lr, w=l )
+
 class Event(SaltConfigMixin):
     tag_match = None
 
@@ -141,9 +149,7 @@ class Event(SaltConfigMixin):
 
     @property
     def short(self):
-        if hasattr(self,'retcode'):
-            return '#{0.evno} tag={0.tag} ret={0.retcode}'.format(self)
-        return '#{0.evno} tag={0.tag}'.format(self)
+        return repr(self)
 
     @classmethod
     def _match(cls, in_str, pat):
@@ -154,8 +160,34 @@ class Event(SaltConfigMixin):
     def has_tag(self, pat):
         return self._glob(self.tag, pat)
 
+    @property
+    def who(self):
+        id   = self.dat.get('id')
+        user = self.dat.get('user','').replace('sudo_','')
+        fun  = self.dat.get('fun')
+        funa = self.dat.get('fun_args')
+
+        if not id:
+            return self.tag
+
+        ret = [ misc_format_width('minion_id',id) ]
+        if user: ret.append(user)
+        if fun:
+            ret.append(misc_format_width('fun',fun))
+        if funa:
+            ret.append( json.dumps(funa) )
+
+        return ' '.join(ret)
+
+    @property
+    def cname(self):
+        return misc_format_width('cname', self.__class__.__name__, lr='<')
+
     def __repr__(self):
-        return '{0.__class__.__name__}({0.tag})'.format(self)
+        ret = '{0.evno:4d}.{0.cname} {0.who}'
+        if hasattr(self,'retcode') and self.retcode is not None:
+            ret += u' → {0.retcode}'
+        return ret.format(self)
     __str__ = __repr__
 
 class Auth(Event):

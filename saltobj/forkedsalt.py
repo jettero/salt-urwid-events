@@ -63,10 +63,9 @@ class MasterMinionJidNexter(object):
                     "_stamp": salt.utils.jid.jid_to_time(jid), # spurious!! this isn't really the return time
 
                     # I can't think of any way to fake these in a general way
-                    # and the jobcache doesn't store them better to explicitly
-                    # show 'unknown' than guess
-                    "retcode": '<unknown>',
-                    "success": '<unknown>',
+                    # and the jobcache doesn't store them
+                    "retcode": None,
+                    "success": None,
                 }
 
                 fake_return.update(mjdat)
