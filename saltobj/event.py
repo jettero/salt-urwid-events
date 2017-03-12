@@ -299,5 +299,20 @@ class Return(JobEvent):
                 return '\n'.join(ret)
         return self.long
 
+class PublishRun(JobEvent):
+    tag_match = 'salt/run/*/new'
+
+    def __init__(self, *args, **kwargs):
+        super(PublishRun,self).__init__(*args,**kwargs)
+        self.user = self.dat.get('user', NA)
+
+class RunReturn(Return):
+    tag_match = 'salt/run/*/ret'
+
+    def __init__(self, *args, **kwargs):
+        super(RunReturn,self).__init__(*args,**kwargs)
+        self.success = self.dat.get('success', NA)
+        self.returnd = self.dat.get('return', 0)
+
 class JCReturn(Return):
     tag_match = 'uevent/job_cache/*/ret/*'
