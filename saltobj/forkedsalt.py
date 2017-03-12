@@ -31,7 +31,7 @@ class MasterMinionJidNexter(object):
         self.g = self.gen()
 
     def gen(self):
-        for jid in self.get_jids():
+        for jid in sorted(self.get_jids()):
             # This is a continuation of the things that happen in
             # salt/runners/jobs.py in print_job()
 
