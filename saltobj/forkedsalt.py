@@ -42,7 +42,9 @@ class MasterMinionJidNexter(object):
             except Exception as e:
                 jdat = {'_jcache_exception': "exception trying to invoke get_jid({0}): {1}".format(jid,e)}
 
-            yield {'get_load':load, 'get_jid': jdat}
+            tag = "uevent/jobcache/{0}".format(jid)
+
+            yield {'tag': tag, 'data': {'get_load':load, 'get_jid': jdat}}
 
     def next(self):
         if self.g:
