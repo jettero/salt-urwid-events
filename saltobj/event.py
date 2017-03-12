@@ -278,6 +278,7 @@ class Publish(JobEvent):
 
 class Return(JobEvent):
     tag_match = 'salt/job/*/ret/*'
+    ooverrides = {}
 
     def __init__(self, *args, **kwargs):
         super(Return,self).__init__(*args,**kwargs)
@@ -286,23 +287,21 @@ class Return(JobEvent):
         self.returnd = self.dat.get('return', 0)
         self.id      = self.dat.get('id', NA)
 
-        self.ooverrides = {}
-
     def _oo(self,o,v=None):
         if o not in self.salt_opts:
             return None
-        if o not in self.ooverrides:
-            self.ooverrides[o] = self.salt_opts[o]
+        if o not in self.__class__.ooverrides:
+            self.__class__.ooverrides[o] = self.salt_opts[o]
         if v is not None:
             if isinstance(v,(list,tuple)):
-                try: idx = v.index(self.ooverrides[o])
+                try: idx = v.index(self.__class__.ooverrides[o])
                 except: idx = 0
                 idx = (idx+1) % len(v)
-                self.ooverrides[o] = v[idx]
+                self.__class__.ooverrides[o] = v[idx]
                 self.log.debug("setting oo[{0}] to {1} (via idx={2})".format(o,v[idx],idx))
             else:
-                self.ooverrides[o] = v
-        return self.ooverrides[o]
+                self.__class__.ooverrides[o] = v
+        return self.__class__.ooverrides[o]
 
     @property
     def outputter_opts(self):
@@ -320,8 +319,8 @@ class Return(JobEvent):
         if outputter:
             self.log.debug('trying to apply outputter')
             __opts__ = self.salt_opts
-            __opts__.update(self.ooverrides)
-            res = salt.output.out_format(to_output, outputter, __opts__, **self.ooverrides)
+            __opts__.update(self.__class__.ooverrides)
+            res = salt.output.out_format(to_output, outputter, __opts__, **self.__class__.ooverrides)
             self.log.debug('outputter put out {0} bytes'.format(len(res)))
             if res:
                 ret = [
