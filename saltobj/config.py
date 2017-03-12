@@ -23,21 +23,21 @@ class SaltConfigMixin(object):
 
     @property
     def minion_opts(self):
-        if not self._minion_opts:
-            self._minion_opts = salt.config.minion_config('/etc/salt/minion')
+        if not SaltConfigMixin._minion_opts:
+            SaltConfigMixin._minion_opts = salt.config.minion_config('/etc/salt/minion')
         return self._normalize_and_copy('_minion_opts')
 
     @property
     def master_opts(self):
-        if not self._master_opts:
-            self._master_opts = salt.config.master_config('/etc/salt/master')
+        if not SaltConfigMixin._master_opts:
+            SaltConfigMixin._master_opts = salt.config.master_config('/etc/salt/master')
         return self._normalize_and_copy('_master_opts')
 
     @property
     def my_opts(self):
-        if not self._my_opts:
-            self._my_opts = DEFAULT_UEVENT_OPTS.copy()
-            self._my_opts.update(
+        if not SaltConfigMixin._my_opts:
+            SaltConfigMixin._my_opts = DEFAULT_UEVENT_OPTS.copy()
+            SaltConfigMixin._my_opts.update(
                 salt.config.load_config('/etc/salt/uevent', 'SALT_UEVENT_CONFIG', DEFAULT_UEVENT_OPTS['conf_file'])
             )
         return self._normalize_and_copy('_my_opts')
