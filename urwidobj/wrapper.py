@@ -104,12 +104,16 @@ class EventViewer(urwid.ListBox):
             self.view.append(self.outputs[pos])
             while len(self.view) > 1:
                 self.view.pop(0)
-        urwid.emit_signal(self, 'key-hints', self.key_hints)
+        urwid.emit_signal(self, 'key-hints')
+
+    def key_hints_signal(self, their_cb):
+        urwid.connect_signal(self, 'key-hints', their_cb)
 
     @property
     def key_hints(self):
         kh = self.view[0].key_hints
         kh = kh + ' [m]ode' if kh else '[m]ode'
+        self.log.debug("built new key-hints: {0}".format(kh))
         return kh + ' '
 
     def keypress(self,*a,**kw):
@@ -126,6 +130,9 @@ class EventViewer(urwid.ListBox):
                 # XXX: this is the wrong way to do this, but I don't know how the key signals work
                 # so I'm re-inventing the wheel until I later figure it out (never?)
                 key = self.view[0].handle_key(key)
+                if not key:
+                    # if we handled the key, we should update key hints too
+                    urwid.emit_signal(self, 'key-hints')
 
         return key # returning this means we didn't deal with it
 

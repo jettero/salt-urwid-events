@@ -103,11 +103,12 @@ class EventApplication(object):
         body_widget = self.main_frame.body
         key_hints = body_widget.key_hints if hasattr(body_widget,'key_hints') else ''
         self.key_hints_txt.set_text( key_hints )
+        self.log.debug("updating key hints")
 
     def push_page(self, widget):
         if self.page_stack[-1] is not widget:
             if hasattr(widget, 'key_hints_signal'):
-                widget.key_hints_signal( self, self.update_key_hints )
+                widget.key_hints_signal( self.update_key_hints )
             self.page_stack.append(widget)
             self.main_frame.body = widget
             self.log.debug("push page={0}".format(widget))
