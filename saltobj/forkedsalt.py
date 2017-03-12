@@ -32,19 +32,49 @@ class MasterMinionJidNexter(object):
 
     def gen(self):
         for jid in self.get_jids():
-            # this is a continuation of the things that happen in
+            # This is a continuation of the things that happen in
             # salt/runners/jobs.py in print_job()
 
+            # It is trickey, the master doesn't really store the event in the
+            # job cache it has to be reconstructed from various sources and
+            # some extra trash has to be removed to make it sorta look right
+            # again see note/ping-return-vs-ping-jobcache.js
+
+            # This is meant to be completely different form what happens in
+            # salt/runners/jobs.py in _format_jid_instance(jid,job), but
+            # has borrowed ideas …
+
             load = self.get_load(jid)
+            mini = load.pop('Minions', ['local'])
 
             try:
                 jdat = self.get_jid(jid)
             except Exception as e:
                 jdat = {'_jcache_exception': "exception trying to invoke get_jid({0}): {1}".format(jid,e)}
 
-            tag = "uevent/jobcache/{0}".format(jid)
+            for id in mini:
+                mjdat = jdat.get(id)
+                fake_return = {
+                    "jid": jid,
+                    "id": id,
+                    "fun": load.get('fun'),
+                    "fun_args": load.get('arg'),
+                    "cmd": "_return", 
+                    "_stamp": salt.utils.jid.jid_to_time(jid), # spurious!! this isn't really the return time
 
-            yield {'tag': tag, 'data': {'get_load':load, 'get_jid': jdat}}
+                    # I can't think of any way to fake these in a general way
+                    # and the jobcache doesn't store them better to explicitly
+                    # show 'unknown' than guess
+                    "retcode": '<unknown>',
+                    "success": '<unknown>',
+                }
+
+                fake_return.update(mjdat)
+
+                tag = "uevent/job_cache/{0}/ret/{1}".format(jid,id)
+                _jdat = {'get_load':load, 'get_jid_{0}'.format(id): mjdat}
+
+                yield {'tag': tag, '_raw':_jdat, 'data': fake_return}
 
     def next(self):
         if self.g:
