@@ -38,8 +38,8 @@ class EventApplication(object):
         self.main_frame = urwid.Frame(
             self.events_listbox,
             footer=urwid.Columns([
-                urwid.AttrMap(self.status_txt,    'status'),
-                urwid.AttrMap(self.key_hints_txt, 'status'),
+                urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
+                urwid.AttrMap(urwid.Padding(self.key_hints_txt, right=1), 'status'),
             ], min_width=20)
         )
 

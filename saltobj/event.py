@@ -307,8 +307,8 @@ class Return(JobEvent):
     @property
     def outputter_opts(self):
         return [
-            {'fmt': '[o]utput-{0}', 'key':'o', 'cb':self._oo, 'args':['state_output'],  'choices':['full', 'changes', 'terse', 'mixed']},
-            {'fmt': '[v]erbose',    'key':'v', 'cb':self._oo, 'args':['state_verbose'], 'choices':[True,False]},
+            {'fmt': '[o]utput-{0}',  'key':'o', 'cb':self._oo, 'args':['state_output'],  'choices':['full', 'changes', 'terse', 'mixed']},
+            {'fmt': '[v]erbose={0}', 'key':'v', 'cb':self._oo, 'args':['state_verbose'], 'choices':[True,False]},
         ]
 
     @property
@@ -321,7 +321,7 @@ class Return(JobEvent):
             self.log.debug('trying to apply outputter')
             __opts__ = self.salt_opts
             __opts__.update(self.ooverrides)
-            res = salt.output.out_format(to_output, outputter, self.salt_opts, **self.ooverrides)
+            res = salt.output.out_format(to_output, outputter, __opts__, **self.ooverrides)
             self.log.debug('outputter put out {0} bytes'.format(len(res)))
             if res:
                 ret = [

@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import saltobj.event
 import urwid
 import command_map_extra
@@ -113,8 +115,8 @@ class EventViewer(urwid.ListBox):
     def key_hints(self):
         kh = self.view[0].key_hints
         kh = kh + ' [m]ode' if kh else '[m]ode'
-        self.log.debug("built new key-hints: {0}".format(kh))
-        return kh + ' '
+        self.log.debug("built new key-hints: «{0}»".format(kh))
+        return kh
 
     def keypress(self,*a,**kw):
         key = super(EventViewer,self).keypress(*a,**kw)
