@@ -1,6 +1,6 @@
 import saltobj.event
 import urwid
-import command_map_vim
+import command_map_extra
 import logging
 
 from misc.xlateansi import xlate_ansi, format_code
@@ -30,7 +30,7 @@ class EventButton(urwid.Button):
         focus_map = 'selected'
         self._si = urwid.SelectableIcon(event.short, cursor_pos_in_button)
         self._w = urwid.AttrMap(self._si, attr_map, focus_map)
-        command_map_vim.add_right_activate(self)
+        command_map_extra.add_right_activate(self)
 
     def update_short(self):
         if self.event.short != self._si.text:
@@ -40,6 +40,7 @@ class EventButton(urwid.Button):
     def viewer(self):
         if not self._viewer:
             self._viewer = EventViewer(self.event)
+            command_map_extra.add_cisco_keys(self._viewer)
         return self._viewer
 
 class EventViewer(urwid.ListBox):

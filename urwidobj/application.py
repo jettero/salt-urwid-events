@@ -6,7 +6,7 @@ import urwid
 import misc
 import saltobj
 import wrapper
-import command_map_vim
+import command_map_extra
 from pallet import get_pallet
 
 class EventApplication(object):
@@ -43,7 +43,8 @@ class EventApplication(object):
             ], min_width=20)
         )
 
-        command_map_vim.add_vim_keys()
+        command_map_extra.add_vim_keys()
+        command_map_extra.add_cisco_keys()
 
         self.page_stack = [self.events_listbox]
 

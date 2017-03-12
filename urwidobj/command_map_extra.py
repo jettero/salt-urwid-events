@@ -10,6 +10,10 @@ def add_vim_keys():
     urwid.command_map['ctrl b'] = urwid.CURSOR_PAGE_UP
     urwid.command_map['ctrl f'] = urwid.CURSOR_PAGE_DOWN
 
+def add_cisco_keys(widget):
+    urwid.command_map['space'] = urwid.CURSOR_PAGE_DOWN
+    urwid.command_map['enter'] = urwid.CURSOR_DOWN
+
 def add_right_activate(widget):
     widget._command_map = ac = urwid.command_map.copy()
     ac['l'] = ac['right'] = urwid.ACTIVATE
