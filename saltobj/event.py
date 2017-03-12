@@ -315,7 +315,7 @@ class Return(JobEvent):
     def outputter(self):
         dat = self.raw.get('data', {})
         outputter = dat.get('out', 'nested')
-        return_data = dat.get('return', dat)
+        return_data = copy.deepcopy( dat.get('return', dat) )
         to_output = { dat.get('id', 'local'): return_data }
         if outputter:
             self.log.debug('trying to apply outputter')
