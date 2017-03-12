@@ -251,3 +251,42 @@ class Return(JobEvent):
                 ]
                 return '\n'.join(ret)
         return self.long
+
+class JobCacheEvent(Return):
+    tag_match = "uevent/jobcache/*" # not a real event, invented in the forked returner
+
+    # def __init__(self, raw):
+    #     self.jcraw = raw
+    #     self.raw = 
+
+            # # this is trickey, the master doesn't really store the event in the
+            # # job cache it has to be reconstructed from various sources and
+            # # some extra trash has to be removed to make it sorta look right
+            # # again see note/ping-return-vs-ping-jobcache.js
+
+            # # This is meant to be completely different form what happens in
+            # # salt/runners/jobs.py in _format_jid_instance(jid,job), but
+            # # has borrowed ideas …
+
+            # load = self.get_load(jid)
+            # mini = load.pop('Minions', ['local'])
+
+            # try:
+            #     jdat = self.get_jid(jid)
+            # except Exception as e:
+            #     jdat = {'_jcache_exception': "exception trying to invoke get_jid({0}): {1}".format(jid,e)}
+
+            # for id in mini:
+            #     job_data = jdat.get(id, jdat.get('_jcache_exception', {}))
+            #     job_data.update({
+            #         "jid": jid,
+            #         "id": id,
+            #         "fun": load.get('fun'),
+            #         "fun_args": load.get('arg'),
+            #         "cmd": "_return", 
+            #         "_stamp": salt.utils.jid.jid_to_time(jid), # spurious!! this isn't really the return time
+            #       # "retcode": None,
+            #       # "success": None,
+            #     })
+
+            #     yield { 'tag': 'salt/job/{0}/ret/{1}'.format(jid,id), 'data': job_data }
