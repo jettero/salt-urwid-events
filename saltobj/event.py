@@ -127,6 +127,23 @@ def misc_format_width(tag, the_str, lr='<', max=None):
         misc_format_lengths[tag] = l = this_len
     return '{0:{lr}{w}s}'.format( the_str, lr=lr, w=l )
 
+def my_args_format(x):
+    if not x:
+        return ''
+    if not isinstance(x, (list,tuple)):
+        return json.dumps(x)
+
+    ret = []
+    for i in x:
+        if isinstance(i,dict):
+            for k,v in i:
+                ret.append('{0}={1}'.format(k,v))
+        ret.append(i)
+    for i,v in enumerate(ret):
+        if ' ' in v:
+            ret[i] = u'«{0}»'.format(v)
+    return ' '.join(ret)
+
 def my_jid_format(jid):
     try:
         jid = str(jid)
@@ -190,12 +207,11 @@ class Event(SaltConfigMixin):
     @property
     def short(self):
         columns = [
+            self.try_attr('jid'), # kinda neat, but then can't c-n-p my_jid_format(self.try_attr('jid')),
             self.__class__.__name__,
-           #my_jid_format(self.try_attr('jid')),
-            self.try_attr('jid'),
             self.try_attr('id'),
             self.try_attr('fun'),
-            self.try_attr('fun_args', preformat=lambda x: json.dumps(x) if x else ''),
+            self.try_attr('fun_args', preformat=my_args_format),
         ]
 
         columns = [ misc_format_width('short-col{0}'.format(i), c) for i,c in enumerate(columns) ]
