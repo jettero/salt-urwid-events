@@ -44,7 +44,6 @@ class EventApplication(object):
         )
 
         command_map_extra.add_vim_keys()
-        command_map_extra.add_cisco_keys()
 
         self.page_stack = [self.events_listbox]
 
@@ -72,7 +71,7 @@ class EventApplication(object):
     def exit_on_q(self,input):
         self.log.debug('got keyboard input: {0}'.format(input))
 
-        if input in ('left'):
+        if input in ('left','h'):
             self.pop_page()
 
         elif input in ('q', 'Q', 'meta q', 'meta Q'):

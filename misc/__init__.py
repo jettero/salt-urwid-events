@@ -34,14 +34,17 @@ def setup_file_logger(args, tag='component-name-here',
         logging.root.debug("logging configured")
         log = logging.getLogger(tag)
 
-        class LogWriter(object):
-            def __init__(self,fn):
+        class MyLogWriter(object):
+            def __init__(self,fn,old_err):
                 self.fn = fn
+                self.old_err = old_err
             def write(self,message):
                 self.fn( message.rstrip() )
+                self.old_err.write( message )
             def flush(self):
-                pass
-        sys.stderr = LogWriter(log.warning)
+                self.old_err.flush()
+
+        sys.stderr = MyLogWriter(log.warning, sys.stderr)
 
         cuid = int(os.environ.get('SUDO_UID', '0'))
         cgid = int(os.environ.get('SUDO_GID', '0'))

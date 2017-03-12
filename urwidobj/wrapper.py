@@ -30,7 +30,7 @@ class EventButton(urwid.Button):
         focus_map = 'selected'
         self._si = urwid.SelectableIcon(event.short, cursor_pos_in_button)
         self._w = urwid.AttrMap(self._si, attr_map, focus_map)
-        command_map_extra.add_right_activate(self)
+        command_map_extra.add_vim_right_activate(self)
 
     def update_short(self):
         if self.event.short != self._si.text:
@@ -40,7 +40,6 @@ class EventButton(urwid.Button):
     def viewer(self):
         if not self._viewer:
             self._viewer = EventViewer(self.event)
-            command_map_extra.add_cisco_keys(self._viewer)
         return self._viewer
 
 class EventViewer(urwid.ListBox):
@@ -58,6 +57,7 @@ class EventViewer(urwid.ListBox):
         self.opos = len( self.outputs ) -1
         lw = urwid.SimpleFocusListWalker([self.long_txt])
         super(EventViewer, self).__init__(lw)
+        command_map_extra.add_cisco_pager_keys(self)
 
     def keypress(self,*a,**kw):
         key = super(EventViewer,self).keypress(*a,**kw)
