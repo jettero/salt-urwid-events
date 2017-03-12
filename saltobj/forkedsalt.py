@@ -2,6 +2,7 @@
 
 import os, copy, json, signal, logging
 import salt.minion
+import salt.utils
 from salt.version import __version__ as saltversion
 
 from saltobj.config import SaltConfigMixin
@@ -15,6 +16,9 @@ class MasterMinionJidNexter(object):
     def get_load(self): pass
 
     def __init__(self, opts):
+        # this is meant to somewhat replicate what happens in
+        # salt/runners/jobs.py in print_job()
+
         self.log = logging.getLogger('MasterMinionJidNexter')
         mminion = salt.minion.MasterMinion(opts)
         for fn in ('get_jids', 'get_jid', 'get_load',):
@@ -27,19 +31,18 @@ class MasterMinionJidNexter(object):
         self.g = self.gen()
 
     def gen(self):
-        for i in self.get_jids():
-            # this is trickey, the master doesn't really store the event in the
-            # job cache it has to be reconstructed from various sources and
-            # some extra trash has to be removed to make it sorta look right
-            # again
+        for jid in self.get_jids():
+            # this is a continuation of the things that happen in
+            # salt/runners/jobs.py in print_job()
 
-            load = self.get_load(i)
-            mini = load.pop('Minions', ['local'])
+            load = self.get_load(jid)
 
-            jid = load.get('jid', '<>')
-            for id in mini:
-                job = { 'tag': 'salt/job/{0}/ret/{1}'.format(jid,id), 'data': load }
-                yield job
+            try:
+                jdat = self.get_jid(jid)
+            except Exception as e:
+                jdat = {'_jcache_exception': "exception trying to invoke get_jid({0}): {1}".format(jid,e)}
+
+            yield {'get_load':load, 'get_jid': jdat}
 
     def next(self):
         if self.g:
