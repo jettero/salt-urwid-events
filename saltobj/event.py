@@ -168,9 +168,11 @@ class Event(SaltConfigMixin):
         self.raw = raw
         self.tag = self.raw.get('tag', NA)
         self.dat = self.raw.get('data', {})
-        self.dinc = 0
-        while 'data' in self.dat:
-            self.dinc += 1
+
+        # This is meant to descend into minion returns to syndic returns to
+        # master.  It's not totally obvious when to go into data={'data': {}},
+        # but this rule seems to be right most of the time.
+        while 'data' in self.dat and isinstance(self.dat['data'],dict) and 'id' in self.dat['data']:
             self.dat = self.dat['data']
 
         self.stamp = self.dat.get('_stamp')
