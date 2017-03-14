@@ -48,7 +48,7 @@ class EventApplication(object):
         self.page_stack = [self.events_listbox]
 
         _a   = (self.main_frame,self.pallet,)
-        _kw = { 'unhandled_input': self.exit_on_q }
+        _kw = { 'unhandled_input': self.keypress }
         try:
             self.log.info("trying to use curses")
             _kw['screen'] = urwid.curses_display.Screen()
@@ -68,19 +68,31 @@ class EventApplication(object):
         self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
         self.sevent.pipe_loop(self._write_fd)
 
-    def exit_on_q(self,input):
-        self.log.debug('got keyboard input: {0}'.format(input))
+    def save_event(self):
+        gf0 = self.events_listwalker.get_focus()[0]
+        evr = gf0.event.raw
+        evn = evr.get('_evno', 999)
+        fname = '/tmp/{0}.event-{1:04d}.json'.format(os.getpid(), evn)
+        with open(fname, 'w') as fh:
+            fh.write( json.dumps(evr, indent=2) )
+        self.status("wrote event to {0}".format(fname))
 
-        if input in ('left','h'):
+    def keypress(self,key):
+        self.log.debug('got keyboard input: {0}'.format(key))
+
+        if key in ('left','h'):
             self.pop_page()
 
-        elif input in ('q', 'Q', 'meta q', 'meta Q'):
+        elif key in ('s',):
+            self.save_event()
+
+        elif key in ('q', 'Q', 'meta q', 'meta Q'):
             if not self.pop_page():
                 self.see_ya('q')
 
     def sig(self, signo,frame):
         if signo in (signal.SIGINT,):
-            self.exit_on_q('q')
+            self.keypress('q')
         else:
             self.log.info("ignoring signal={0}".format(signo))
 
