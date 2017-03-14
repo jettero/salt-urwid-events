@@ -54,6 +54,10 @@ class MasterMinionJidNexter(object):
 
             for id in mini:
                 mjdat = jdat.get(id)
+                if mjdat is None:
+                    self.log.info("minion id={0} did not return in jid={1} (but was expected to do so)".format(id,jid))
+                    continue
+
                 fake_return = {
                     "jid": jid,
                     "id": id,
