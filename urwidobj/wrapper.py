@@ -31,6 +31,7 @@ class EventButton(urwid.Button):
         attr_map  = None
         focus_map = 'selected'
         self._si = urwid.SelectableIcon(event.short, cursor_pos_in_button)
+        self._si.set_wrap_mode('clip')
         self._w = urwid.AttrMap(self._si, attr_map, focus_map)
         command_map_extra.add_vim_right_activate(self)
 

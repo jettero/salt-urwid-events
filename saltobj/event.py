@@ -105,18 +105,20 @@ def grok_json_event(json_data):
 
 def classify_event(json_data):
     raw = grok_json_event(json_data)
-    tag = raw.get('tag', NA)
     cls = Event
     for clz in globals().values():
-        if inspect.isclass( clz ) and issubclass(clz, Event) and hasattr(clz,'tag_match'):
+        if inspect.isclass( clz ) and issubclass(clz, Event):
             if clz.tag_match is not None and Event._match(tag, clz.tag_match):
                 cls = clz
                 break
+            if clz.cmd_match is not None and Event._match(cmd, clz.cmd_match):
 
     return cls(raw)
 
 misc_format_lengths = {}
 def misc_format_width(tag, the_str, lr='<', max=None):
+    if the_str is NA:
+        the_str = ''
     the_str = u'{0}'.format(the_str)
     l = misc_format_lengths.get(tag,0)
     this_len = len(the_str)
@@ -125,10 +127,10 @@ def misc_format_width(tag, the_str, lr='<', max=None):
         the_str  = the_str[0:max-1] + '…'
     if this_len > l:
         misc_format_lengths[tag] = l = this_len
-    return '{0:{lr}{w}s}'.format( the_str, lr=lr, w=l )
+    return u'{0:{lr}{w}s}'.format( the_str, lr=lr, w=l )
 
 def my_args_format(x):
-    if not x:
+    if not x or x is NA:
         return ''
     if not isinstance(x, (list,tuple)):
         return json.dumps(x)
@@ -136,9 +138,10 @@ def my_args_format(x):
     ret = []
     for i in x:
         if isinstance(i,dict):
-            for k,v in i:
+            for k,v in i.iteritems():
                 ret.append('{0}={1}'.format(k,v))
-        ret.append(i)
+        else:
+            ret.append(i)
     for i,v in enumerate(ret):
         if ' ' in v:
             ret[i] = u'«{0}»'.format(v)
@@ -162,6 +165,7 @@ def my_jid_format(jid):
 
 class Event(SaltConfigMixin):
     tag_match = None
+    cmd_match = None
 
     def __init__(self, raw):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -197,26 +201,41 @@ class Event(SaltConfigMixin):
 
     def try_attr(self, attr, default=NA, no_none=False, preformat=None):
         ret = default
-        if hasattr(self,attr): ret = getattr(self,attr)
-        elif attr in self.dat: ret = self.dat[attr]
-        elif attr in self.raw: ret = self.raw[attr]
+        if not isinstance(attr, (list,tuple)):
+            attr = (attr,)
+        for a in attr:
+            if hasattr(self,a):
+                ret = getattr(self,a)
+                break;
+            elif a in self.dat:
+                ret = self.dat[a]
+                break;
+            elif a in self.raw:
+                ret = self.raw[a]
+                break;
         if no_none and ret is None:
             ret = default
         if preformat and not isinstance(ret, (str,unicode)):
             ret = preformat(ret)
         return ret
 
-    @property
-    def short(self):
-        columns = [
-            self.try_attr('jid'), # kinda neat, but then can't c-n-p my_jid_format(self.try_attr('jid')),
-            self.__class__.__name__,
-            self.try_attr('id'),
-            self.try_attr('fun'),
-            self.try_attr('fun_args', preformat=my_args_format),
+    def _base_short_columns(self):
+        return [
+            ('bjid', self.try_attr('jid')),
+            ('bcnm', self.__class__.__name__),
         ]
 
-        columns = [ misc_format_width('short-col{0}'.format(i), c) for i,c in enumerate(columns) ]
+    def _short_columns(self):
+        return self._base_short_columns() + [
+            ('scid',   self.try_attr('id')),
+            ('scfun',  self.try_attr('fun')),
+            ('scfna',  self.try_attr('fun_args', preformat=my_args_format)),
+        ]
+
+    @property
+    def short(self):
+        columns = self._short_columns()
+        columns = [ misc_format_width(*c) for i,c in enumerate(columns) ]
         return ' '.join(columns)
 
     def __repr__(self):
@@ -231,6 +250,14 @@ class Auth(Event):
         self.result = self.dat.get('result', False)
         self.id     = self.dat.get('id', NA)
         self.act    = self.dat.get('act', NA)
+
+    def _short_columns(self):
+        c = super(Auth, self)._short_columns()
+        v = self.try_attr('act')
+        if v == 'accept':
+            v = u"{0} → {1}".format(v, self.try_attr('result') )
+        c[3] = ('auth-act', v)
+        return c[0:4]
 
 class JobEvent(Event):
     def __init__(self, *args, **kwargs):
@@ -277,6 +304,44 @@ class Publish(JobEvent):
         super(Publish,self).__init__(*args,**kwargs)
         self.user    = self.dat.get('user', NA)
         self.minions = self.dat.get('minions', [])
+
+    def _short_columns(self):
+        b = self._base_short_columns()
+        tgt = self.try_attr('tgt')
+        tgt_type = self.try_attr('tgt_type')
+
+	# this is cut and pasted from salt/minion.py:Matcher.compound_match
+        # it doesn't seem to be defined anywhere else
+        # then I reversed it, ... der.
+        # ref = {'G': 'grain',
+        #        'P': 'grain_pcre',
+        #        'I': 'pillar',
+        #        'J': 'pillar_pcre',
+        #        'L': 'list',
+        #        'N': None,      # Nodegroups should already be expanded
+        #        'S': 'ipcidr',
+        #        'E': 'pcre'}
+
+        unref = {
+            'grain':        'G',
+            'grain_pcre':   'P',
+            'pillar':       'I',
+            'pillar_pcre':  'J',
+            'list':         'L',
+            'ipcidr':       'S',
+            'pcre':         'E',
+        }
+
+        if tgt_type in unref:
+            tv = u'{0}@{1}'.format(unref[tgt_type],tgt)
+        else:
+            tv = '{0}({1})'.format( self.try_attr('tgt_type'), self.try_attr('tgt') )
+        c = [
+            ('target_value', tv),
+            ('scfun',  self.try_attr('fun')),
+            ('scfna',  self.try_attr('arg', preformat=my_args_format)),
+        ]
+        return b + c
 
 class Return(JobEvent):
     tag_match = 'salt/job/*/ret/*'

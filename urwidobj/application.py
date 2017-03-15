@@ -39,7 +39,7 @@ class EventApplication(object):
             self.events_listbox,
             footer=urwid.Columns([
                 urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
-                urwid.AttrMap(urwid.Padding(self.key_hints_txt, right=1), 'status'),
+                urwid.AttrMap(urwid.Padding(self.key_hints_txt, right=2), 'status'),
             ], min_width=20)
         )
 
@@ -66,6 +66,9 @@ class EventApplication(object):
         self._write_fd = self.loop.watch_pipe(self.got_pipe_data)
         self.log.debug('urwid.loop.watch_pipe() write_fd={0}'.format(self._write_fd))
         self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
+
+        self.update_key_hints()
+
         self.sevent.pipe_loop(self._write_fd)
 
     def save_event(self):
@@ -113,7 +116,10 @@ class EventApplication(object):
 
     def update_key_hints(self):
         body_widget = self.main_frame.body
-        key_hints = body_widget.key_hints if hasattr(body_widget,'key_hints') else ''
+        key_hints = ['[s]ave-event']
+        if hasattr(body_widget,'key_hints'):
+            key_hints.append(body_widget.key_hints)
+        key_hints = ' '.join(key_hints)
         self.key_hints_txt.set_text( key_hints )
         self.log.debug("updating key hints")
 
@@ -184,4 +190,4 @@ class EventApplication(object):
             try:
                 self.handle_salt_data(json.loads(data[5:]))
             except Exception as e:
-                self.log.warning("exception trying to handle json data: {0}".format(e))
+                self.log.exception("exception trying to handle json data")
