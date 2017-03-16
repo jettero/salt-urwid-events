@@ -229,31 +229,27 @@ class Event(SaltConfigMixin):
             ret = preformat(ret)
         return ret
 
-    def _base_short_columns(self):
-        if SHOW_JIDS:
-            return [
-                ('bjid', self.try_attr('jid')),
-                ('bcnm', self.__class__.__name__),
-            ]
+    @property
+    def who(self):
+        return self.try_attr('id')
 
-        return [ ('bcnm', self.__class__.__name__), ]
-
-    def _def_short_columns(self):
-        return self._base_short_columns() + [
-            ('scid',   self.try_attr('id')),
-        ]
-
-    def _short_columns(self):
-        return self._def_short_columns() + [
-            ('scfun',  self.try_attr('fun')),
-            ('scfna',  self.try_attr('fun_args', preformat=my_args_format)),
-        ]
+    @property
+    def what(self):
+        return (
+            self.try_attr('fun'),
+            self.try_attr('fun_args', preformat=my_args_format),
+        )
 
     @property
     def short(self):
-        columns = self._short_columns()
-        columns = [ misc_format_width(*c) for i,c in enumerate(columns) ]
-        return ' '.join(columns)
+        columns = []
+        for item in [ self.__class__.__name__, self.who, self.what ]:
+            if isinstance(item, (list,tuple)):
+                item = ' '.join(item)
+            columns.append(item)
+
+        columns = [ misc_format_width('col{0}'.format(i), c) for i,c in enumerate(columns) ]
+        return ' '.join(columns).replace('<n/a>','')
 
     def __repr__(self):
         return '{0.evno} {0.cname}'.format(self)
@@ -268,13 +264,12 @@ class Auth(Event):
         self.id     = self.dat.get('id', NA)
         self.act    = self.dat.get('act', NA)
 
-    def _short_columns(self):
+    @property
+    def what(self):
         v = self.try_attr('act')
         if v == 'accept':
             v = u"{0} → {1}".format(v, self.try_attr('result') )
-        return self._def_short_columns() + [
-            ('auth-act', v)
-        ]
+        return v
 
 class JobEvent(Event):
     def __init__(self, *args, **kwargs):
@@ -457,8 +452,9 @@ class EventSend(Event):
             for k in to_remove:
                 del self.sent[k]
 
-    def _short_columns(self):
-        return self._def_short_columns() + [
-            ('tag',  self.tag),
-            ('sent', self.sent),
-        ]
+    @property
+    def what(self):
+        return (
+            self.tag,
+            self.sent,
+        )
