@@ -105,15 +105,10 @@ def grok_json_event(json_data):
 
 def classify_event(json_data):
     raw = grok_json_event(json_data)
-    cls = Event
-    for clz in globals().values():
-        if inspect.isclass( clz ) and issubclass(clz, Event):
-            if clz.tag_match is not None and Event._match(tag, clz.tag_match):
-                cls = clz
-                break
-            if clz.cmd_match is not None and Event._match(cmd, clz.cmd_match):
-
-    return cls(raw)
+    for cls in globals().values():
+        if inspect.isclass( cls ) and issubclass(cls, Event) and cls.match(raw):
+            return cls(raw)
+    return Event(raw)
 
 misc_format_lengths = {}
 def misc_format_width(tag, the_str, lr='<', max=None):
@@ -164,8 +159,7 @@ def my_jid_format(jid):
         return jid
 
 class Event(SaltConfigMixin):
-    tag_match = None
-    cmd_match = None
+    matches = ()
 
     def __init__(self, raw):
         self.log = logging.getLogger(self.__class__.__name__)
@@ -191,10 +185,18 @@ class Event(SaltConfigMixin):
         return json.dumps(self.raw, indent=2)
 
     @classmethod
-    def _match(cls, in_str, pat):
-        if isinstance(pat,str):
-            return bool( fnmatch(in_str, pat) )
-        return bool( pat.match(in_str) )
+    def match(cls, raw):
+        for m in cls.matches:
+            key, pat = m
+            tstr = raw.get(key)
+            if tstr is None:
+                return False
+            if isinstance(pat,str):
+                if not fnmatch(tstr, pat):
+                    return False
+            elif not pat.match(tstr):
+                return False
+        return True
 
     def has_tag(self, pat):
         return self._glob(self.tag, pat)
@@ -243,7 +245,7 @@ class Event(SaltConfigMixin):
     __str__ = __repr__
 
 class Auth(Event):
-    tag_match = 'salt/auth'
+    matches = (( 'tag', 'salt/auth' ),)
 
     def __init__(self, *args, **kwargs):
         super(Auth,self).__init__(*args,**kwargs)
@@ -283,7 +285,7 @@ class JobEvent(Event):
         self.args_str = ' '.join(asr)
 
 class ExpectedReturns(Event):
-    tag_match = re.compile(r'\d+')
+    matches = (( 'tag', re.compile(r'\d+') ),)
 
     def __init__(self, *args, **kwargs):
         super(ExpectedReturns,self).__init__(*args,**kwargs)
@@ -291,14 +293,14 @@ class ExpectedReturns(Event):
         self.jid = self.tag.split('/')[-1]
 
 class SyndicExpectedReturns(ExpectedReturns):
-    tag_match = re.compile(r'syndic/[^/]+/\d+')
+    matches = (('tag',re.compile(r'syndic/[^/]+/\d+')),)
 
     def __init__(self, *args, **kwargs):
         super(SyndicExpectedReturns,self).__init__(*args,**kwargs)
         self.syndic = self.tag.split('/')[1]
 
 class Publish(JobEvent):
-    tag_match = 'salt/job/*/new'
+    matches = (('tag', 'salt/job/*/new'),)
 
     def __init__(self, *args, **kwargs):
         super(Publish,self).__init__(*args,**kwargs)
@@ -344,7 +346,7 @@ class Publish(JobEvent):
         return b + c
 
 class Return(JobEvent):
-    tag_match = 'salt/job/*/ret/*'
+    matches = (('tag', 'salt/job/*/ret/*'),)
     ooverrides = {}
 
     def __init__(self, *args, **kwargs):
@@ -400,14 +402,14 @@ class Return(JobEvent):
         return self.long
 
 class PublishRun(JobEvent):
-    tag_match = 'salt/run/*/new'
+    matches = (('tag', 'salt/run/*/new'),)
 
     def __init__(self, *args, **kwargs):
         super(PublishRun,self).__init__(*args,**kwargs)
         self.user = self.dat.get('user', NA)
 
 class RunReturn(Return):
-    tag_match = 'salt/run/*/ret'
+    matches = (('tag', 'salt/run/*/ret'),)
 
     def __init__(self, *args, **kwargs):
         super(RunReturn,self).__init__(*args,**kwargs)
@@ -415,4 +417,4 @@ class RunReturn(Return):
         self.returnd = self.dat.get('return', 0)
 
 class JCReturn(Return):
-    tag_match = 'uevent/job_cache/*/ret/*'
+    matches = (('tag', 'uevent/job_cache/*/ret/*'),)
