@@ -9,6 +9,8 @@ import salt.output
 
 from saltobj.config import SaltConfigMixin
 
+SHOW_JIDS = False
+
 NA = '<n/a>'
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
@@ -186,9 +188,15 @@ class Event(SaltConfigMixin):
 
     @classmethod
     def match(cls, raw):
+        if not hasattr(cls,'matches') or not cls.matches:
+            return False
         for m in cls.matches:
+            _find = raw
             key, pat = m
-            tstr = raw.get(key)
+            tstr = _find.get(key)
+            while tstr is None and 'data' in _find:
+                _find = _find['data']
+                tstr = _find.get(key)
             if tstr is None:
                 return False
             if isinstance(pat,str):
@@ -222,14 +230,21 @@ class Event(SaltConfigMixin):
         return ret
 
     def _base_short_columns(self):
-        return [
-            ('bjid', self.try_attr('jid')),
-            ('bcnm', self.__class__.__name__),
+        if SHOW_JIDS:
+            return [
+                ('bjid', self.try_attr('jid')),
+                ('bcnm', self.__class__.__name__),
+            ]
+
+        return [ ('bcnm', self.__class__.__name__), ]
+
+    def _def_short_columns(self):
+        return self._base_short_columns() + [
+            ('scid',   self.try_attr('id')),
         ]
 
     def _short_columns(self):
-        return self._base_short_columns() + [
-            ('scid',   self.try_attr('id')),
+        return self._def_short_columns() + [
             ('scfun',  self.try_attr('fun')),
             ('scfna',  self.try_attr('fun_args', preformat=my_args_format)),
         ]
@@ -254,12 +269,12 @@ class Auth(Event):
         self.act    = self.dat.get('act', NA)
 
     def _short_columns(self):
-        c = super(Auth, self)._short_columns()
         v = self.try_attr('act')
         if v == 'accept':
             v = u"{0} → {1}".format(v, self.try_attr('result') )
-        c[3] = ('auth-act', v)
-        return c[0:4]
+        return self._def_short_columns() + [
+            ('auth-act', v)
+        ]
 
 class JobEvent(Event):
     def __init__(self, *args, **kwargs):
@@ -418,3 +433,32 @@ class RunReturn(Return):
 
 class JCReturn(Return):
     matches = (('tag', 'uevent/job_cache/*/ret/*'),)
+
+class EventSend(Event):
+    matches = (
+        ('cmd',       '_minion_event'),
+        ('__pub_fun', 'event.send'),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(EventSend,self).__init__(*args,**kwargs)
+
+        dat = self.dat
+        while '__pub_fun' not in dat and 'data' in dat:
+            dat = dat['data']
+
+        self.sent = {}
+        if '__pub_fun' in dat:
+            self.sent = copy.deepcopy(dat)
+            to_remove = set()
+            for k in self.sent:
+                if k.startswith('__'):
+                    to_remove.add(k)
+            for k in to_remove:
+                del self.sent[k]
+
+    def _short_columns(self):
+        return self._def_short_columns() + [
+            ('tag',  self.tag),
+            ('sent', self.sent),
+        ]
