@@ -1,7 +1,25 @@
 
-class ListWithPtr(list):
-    _pos = -1
+import urwid.monitored_list
 
+class ListWithPtr(urwid.monitored_list.MonitoredList):
+    _pos = -1
+    siv  = []
+
+    def __init__(self, *a, **kw):
+        super(ListWithPtr,self).__init__(*a, **kw)
+        self._modified()
+
+    def _modified(self):
+        if not self:
+            self._pos = -1
+            while self.siv:
+                self.siv.pop()
+
+        elif not self.siv or self.siv[0] is not self.cur:
+            while self.siv:
+                self.siv.pop()
+            self.siv.append(self.cur)
+            
     @property
     def cur(self):
         try: return self[ self.pos ]
@@ -11,12 +29,14 @@ class ListWithPtr(list):
     def next(self):
         try: self.pos += 1
         except: pass
+        self._modified()
         return self.cur
 
     @property
     def prev(self):
         try: self.pos -= 1
         except: pass
+        self._modified()
         return self.cur
 
     @property
@@ -27,6 +47,7 @@ class ListWithPtr(list):
     @pos.setter
     def pos(self, v):
         self._pos = v
+        self._modified()
         return self.pos
 
     def __repr__(self):
