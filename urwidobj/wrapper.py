@@ -6,6 +6,7 @@ import command_map_extra
 import logging
 
 from misc.xlateansi import xlate_ansi, format_code
+from misc import ListWithPtr
 
 class AnsiableText(urwid.Text):
     def __init__(self, *a,**kw):
@@ -83,38 +84,25 @@ class OutputterViewer(AnsiableText):
 
 class EventViewer(urwid.ListBox):
     key_hints = ''
-    opos = 0
     view = None
 
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.outputs = [ CodeViewer(event) ]
+        self.outputs = ListWithPtr()
+        self.outputs.siv = urwid.SimpleFocusListWalker([])
+        self.outputs.append( CodeViewer(event) )
         if hasattr(event, 'outputter'):
             self.outputs.append( OutputterViewer(event) )
-        self.opos = len( self.outputs ) -1
-        self.goto_view()
-        lw = urwid.SimpleFocusListWalker(self.view)
-        super(EventViewer, self).__init__(lw)
+        super(EventViewer, self).__init__(self.outputs.siv)
         command_map_extra.add_cisco_pager_keys(self)
-
-    def goto_view(self, pos=None):
-        if pos is None:
-            pos = self.opos
-        if not self.view:
-            self.view = [self.outputs[pos]]
-        elif self.view[0] is not self.outputs[pos]:
-            self.view.append(self.outputs[pos])
-            while len(self.view) > 1:
-                self.view.pop(0)
-        urwid.emit_signal(self, 'key-hints')
 
     def key_hints_signal(self, their_cb):
         urwid.connect_signal(self, 'key-hints', their_cb)
 
     @property
     def key_hints(self):
-        kh = self.view[0].key_hints
+        kh = self.outputs.cur.key_hints
         kh = kh + ' [m]ode' if kh else '[m]ode'
         self.log.debug("built new key-hints: «{0}»".format(kh))
         return kh
@@ -124,15 +112,14 @@ class EventViewer(urwid.ListBox):
 
         if key and self.key_hints: # if key is true, super() didn't handle the keypress
             if key in ('m',):
-                self.log.debug('swapping mode {0}[({1}+1)%len]'.format(self.outputs,self.opos))
-                self.opos = (self.opos + 1) % len(self.outputs)
-                self.long_txt.set_text( self.outputs[self.opos](self.event) )
+                self.outputs.next
+                self.log.debug('swapping mode {0} {1}'.format(self.outputs.pos,self.outputs.siv))
                 return # we handled the keystroke
 
             else:
                 # XXX: this is the wrong way to do this, but I don't know how the key signals work
                 # so I'm re-inventing the wheel until I later figure it out (never?)
-                key = self.view[0].handle_key(key)
+                key = self.outputs.cur.handle_key(key)
                 if not key:
                     # if we handled the key, we should update key hints too
                     urwid.emit_signal(self, 'key-hints')

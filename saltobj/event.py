@@ -296,18 +296,25 @@ class JobEvent(Event):
 
 class ExpectedReturns(Event):
     matches = (( 'tag', re.compile(r'\d+') ),)
+    who = 'local'
 
     def __init__(self, *args, **kwargs):
         super(ExpectedReturns,self).__init__(*args,**kwargs)
         self.minions = self.dat.get('minions', [])
         self.jid = self.tag.split('/')[-1]
 
+    @property
+    def what(self):
+        return ', '.join(self.minions)
+
 class SyndicExpectedReturns(ExpectedReturns):
     matches = (('tag',re.compile(r'syndic/[^/]+/\d+')),)
+    who = ''
 
     def __init__(self, *args, **kwargs):
         super(SyndicExpectedReturns,self).__init__(*args,**kwargs)
         self.syndic = self.tag.split('/')[1]
+        self.who = self.syndic
 
 class Publish(JobEvent):
     matches = (('tag', 'salt/job/*/new'),)
@@ -316,6 +323,7 @@ class Publish(JobEvent):
         super(Publish,self).__init__(*args,**kwargs)
         self.user    = self.dat.get('user', NA)
         self.minions = self.dat.get('minions', [])
+        self.who     = 'local'
 
     def _short_columns(self):
         b = self._base_short_columns()
