@@ -2,6 +2,7 @@ import os
 
 from argparser import ArgumentParser
 from xlateansi import xlate_ansi, format_code
+from list_ptr  import ListWithPtr
 
 def be_root_you_fool():
     import os
