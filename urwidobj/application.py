@@ -35,13 +35,18 @@ class EventApplication(object):
         self.events = []
         self.events_listwalker = urwid.SimpleFocusListWalker(self.events)
         self.events_listbox = urwid.ListBox(self.events_listwalker)
-        self.main_frame = urwid.Frame(
-            self.events_listbox,
-            footer=urwid.Columns([
-                urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
-                urwid.AttrMap(urwid.Padding(self.key_hints_txt, right=1), 'status'),
-            ], min_width=20)
-        )
+
+        status_line = urwid.Columns([
+            urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
+            urwid.AttrMap(urwid.Padding(self.key_hints_txt, right=1), 'status'),
+        ], min_width=20)
+
+        self.log.debug("TERM={0} TMUX={1}".format(os.environ.get('TERM'), os.environ.get('TMUX')))
+        if os.environ.get('TERM') == 'screen':
+            self.log.debug('attempting to address LR-corner issue in tmux terminals')
+            status_line = urwid.Padding(status_line, right=1)
+
+        self.main_frame = urwid.Frame( self.events_listbox, footer=status_line)
 
         command_map_extra.add_vim_keys()
 
