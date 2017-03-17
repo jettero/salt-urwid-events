@@ -83,6 +83,16 @@ class EventApplication(object):
         fname = '/tmp/{0}.event-{1:04d}.json'.format(os.getpid(), evn)
         with open(fname, 'w') as fh:
             fh.write( json.dumps(evr, indent=2) )
+
+        if 'SUDO_GID' in os.environ and 'SUDO_UID' in os.environ:
+            try:
+                uid = int(os.environ.get('SUDO_UID'))
+                gid = int(os.environ.get('SUDO_GID'))
+                os.chown(fname, uid,gid)
+            except Exception as e:
+                self.log.info('tried to chown({0},{1},{2}) but failed: {3}'.format(
+                    fname,os.envrion.get('SUDO_UID'),os.environ.get('SUDO_GID'),e))
+
         self.status("wrote event to {0}".format(fname))
 
     def keypress(self,key):
