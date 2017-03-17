@@ -468,7 +468,17 @@ class StateReturn(Return):
                             self.changes_count += 1
                     if 'result' in v:
                         self.results[ v['__id__'] ] = bool(v['result'])
-                        self.result_counts[ 0 if v['result'] else 1 ] += 1
+                        self.result_counts[1] += 1
+                        if v['result']:
+                            self.result_counts[0] += 1
+
+    @property
+    def what(self):
+        w = super(StateReturn,self).what
+        m = 'changes={0} success={1}/{2}'.format( self.changes_count, *self.result_counts )
+        if isinstance(w,(list,tuple)):
+            return w + (m,)
+        return '{0} {1}'.format(w,m)
 
 class PublishRun(JobEvent):
     matches = (('tag', 'salt/run/*/new'),)
