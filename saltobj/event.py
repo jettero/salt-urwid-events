@@ -358,7 +358,7 @@ class Publish(JobEvent):
             if unref[tgt_type] is not None:
                 tv = u'{0}@{1}'.format(unref[tgt_type],tgt)
             else:
-                tv = u'{1}'.format(tgt)
+                tv = u'{0}'.format(tgt)
         else:
             tv = '<{0}>@{1}'.format( self.try_attr('tgt_type'), self.try_attr('tgt') )
 
