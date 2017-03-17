@@ -62,8 +62,8 @@ class EventApplication(object):
         try:
             self.log.debug('trying to use curses')
             from urwid.curses_display import Screen as CScreen
-            _kw['screen'] = CScreen()
-            self.curses_mode = True
+            #_kw['screen'] = CScreen()
+            #self.curses_mode = True
         except Exception as e:
             self.log.debug("self.loop exception: {0}".format(e))
             self.log.info("failed to use curses, trying the default instead")
