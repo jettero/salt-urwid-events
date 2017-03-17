@@ -326,8 +326,8 @@ class Publish(JobEvent):
         self.minions = self.dat.get('minions', [])
         self.who     = 'local'
 
-    def _short_columns(self):
-        b = self._base_short_columns()
+    @property
+    def what(self):
         tgt = self.try_attr('tgt')
         tgt_type = self.try_attr('tgt_type')
 
@@ -351,18 +351,21 @@ class Publish(JobEvent):
             'list':         'L',
             'ipcidr':       'S',
             'pcre':         'E',
+            'glob':         None
         }
 
         if tgt_type in unref:
-            tv = u'{0}@{1}'.format(unref[tgt_type],tgt)
+            if unref[tgt_type] is not None:
+                tv = u'{0}@{1}'.format(unref[tgt_type],tgt)
+            else:
+                tv = u'{1}'.format(tgt)
         else:
-            tv = '{0}({1})'.format( self.try_attr('tgt_type'), self.try_attr('tgt') )
-        c = [
-            ('target_value', tv),
-            ('scfun',  self.try_attr('fun')),
-            ('scfna',  self.try_attr('arg', preformat=my_args_format)),
-        ]
-        return b + c
+            tv = '<{0}>@{1}'.format( self.try_attr('tgt_type'), self.try_attr('tgt') )
+
+        return '{target} {fun} {fun_args}'.format(
+            target=tv, fun=self.try_attr('fun'),
+            fun_args=self.try_attr('arg', preformat=my_args_format),
+        )
 
 class Return(JobEvent):
     matches = (('tag', 'salt/job/*/ret/*'),)
