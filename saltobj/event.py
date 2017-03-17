@@ -318,6 +318,7 @@ class SyndicExpectedReturns(ExpectedReturns):
 
 class Publish(JobEvent):
     matches = (('tag', 'salt/job/*/new'),)
+    who = ''
 
     def __init__(self, *args, **kwargs):
         super(Publish,self).__init__(*args,**kwargs)
