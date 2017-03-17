@@ -105,9 +105,32 @@ def grok_json_event(json_data):
         json_data = { 'tag': tagtop, 'data': json_data }
     return json_data
 
+def _count_bases(x, classes):
+    if x not in classes:
+        return 0
+    if not x._ordering:
+        c = 1
+        for b in x.__bases__:
+            if b in classes:
+                c += _count_bases(b, classes)
+        x._ordering = c
+    return x._ordering
+
+def event_classes():
+    # attempt to impose an orderin on the classes, such that a subclass of a
+    # class is tried before the class while matching classes
+    classes = []
+    for cls in globals().values():
+        if inspect.isclass( cls ) and issubclass(cls, Event):
+            cls._ordering = 0
+            classes.append(cls)
+    classes = sorted([ (_count_bases(x,classes),x) for x in classes ])
+    classes.reverse()
+    return [ x[1] for x in classes ]
+
 def classify_event(json_data):
     raw = grok_json_event(json_data)
-    for cls in globals().values():
+    for cls in event_classes():
         if inspect.isclass( cls ) and issubclass(cls, Event) and cls.match(raw):
             return cls(raw)
     return Event(raw)
@@ -422,6 +445,30 @@ class Return(JobEvent):
                 ]
                 return '\n'.join(ret)
         return self.long
+
+class StateReturn(Return):
+    matches = Return.matches + (
+        ('fun', 'state.sls',),
+    )
+
+    def __init__(self, *a, **kw):
+        super(StateReturn,self).__init__(*a,**kw)
+        self.changes = {}
+        self.results = {}
+
+        self.changes_count = 0
+        self.result_counts = [0,0]
+
+        if isinstance(self.returnd, dict):
+            for v in self.returnd.values():
+                if '__id__' in v:
+                    if 'changes' in v and isinstance(v['changes'],dict):
+                        self.changes[ v['__id__'] ] = v['changes']
+                        if v['changes']:
+                            self.changes_count += 1
+                    if 'result' in v:
+                        self.results[ v['__id__'] ] = bool(v['result'])
+                        self.result_counts[ 0 if v['result'] else 1 ] += 1
 
 class PublishRun(JobEvent):
     matches = (('tag', 'salt/run/*/new'),)
