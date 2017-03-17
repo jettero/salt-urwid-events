@@ -52,6 +52,8 @@ class EventApplication(object):
 
         self.page_stack = [self.events_listbox]
 
+        self.update_key_hints()
+
         _a   = (self.main_frame,self.pallet,)
         _kw = { 'unhandled_input': self.keypress }
 
@@ -76,7 +78,6 @@ class EventApplication(object):
         self.log.debug('urwid.loop.watch_pipe() write_fd={0}'.format(self._write_fd))
         self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
 
-        self.update_key_hints()
         self.sevent.pipe_loop(self._write_fd)
 
     def save_event(self):
