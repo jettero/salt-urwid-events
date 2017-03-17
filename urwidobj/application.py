@@ -54,26 +54,29 @@ class EventApplication(object):
 
         _a   = (self.main_frame,self.pallet,)
         _kw = { 'unhandled_input': self.keypress }
+
+        self.curses_mode = False
+
         try:
-            self.log.info("trying to use curses")
-            _kw['screen'] = urwid.curses_display.Screen()
-            self.loop = urwid.MainLoop(*_a, **_kw)
+            self.log.debug('trying to use curses')
+            from urwid.curses_display import Screen as CScreen
+            _kw['screen'] = CScreen()
+            self.curses_mode = True
         except Exception as e:
             self.log.debug("self.loop exception: {0}".format(e))
             self.log.info("failed to use curses, trying the default instead")
-            if 'screen' in _kw:
-                del _kw['screen']
-            self.loop = urwid.MainLoop(*_a, **_kw)
 
-        self.show_cursor = urwid.escape.SHOW_CURSOR
-        urwid.escape.SHOW_CURSOR = ''
+        self.loop = urwid.MainLoop(*_a, **_kw)
+
+        if not self.curses_mode:
+            self.show_cursor = urwid.escape.SHOW_CURSOR
+            urwid.escape.SHOW_CURSOR = ''
 
         self._write_fd = self.loop.watch_pipe(self.got_pipe_data)
         self.log.debug('urwid.loop.watch_pipe() write_fd={0}'.format(self._write_fd))
         self.sevent = saltobj.ForkedSaltPipeWriter(self.args)
 
         self.update_key_hints()
-
         self.sevent.pipe_loop(self._write_fd)
 
     def save_event(self):
@@ -115,12 +118,18 @@ class EventApplication(object):
             self.log.info("ignoring signal={0}".format(signo))
 
     def run(self):
+        self.log.debug('attaching SIGINT handler')
         signal.signal(signal.SIGINT, self.sig)
+        self.log.debug('running mainloop')
         self.loop.run()
+        self.log.debug('mainloop run ended, saying goodbye')
         self.sevent.see_ya()
 
     def see_ya(self,*x):
-        self.loop.screen.write( self.show_cursor ) # urwid's ability to do this was disabled
+        if not self.curses_mode:
+            # we disable show_cursor in raw_display (but not in curses mode)
+            # so if we're in raw display, we have to show cursor again at the end
+            self.loop.screen.write( self.show_cursor )
         if len(x):
             self.log.debug("received signal={0}".format(x[0]))
         self.sevent.see_ya()

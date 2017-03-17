@@ -190,7 +190,7 @@ class ForkedSaltPipeWriter(SaltConfigMixin):
             self.evno += 1
             return json.dumps(ev, indent=2)
 
-    def main_loop(self, callback):
+    def listen_loop(self, callback):
         while True:
             if not os.path.isfile('/proc/{0.ppid}/cmdline'.format(self)):
                 self.log.debug("our ppid={0.ppid} seems to be missing. breaking mainloop now".format(self))
@@ -202,7 +202,7 @@ class ForkedSaltPipeWriter(SaltConfigMixin):
                 self.log.debug('null event, re-looping')
                 continue
 
-            self.log.debug("main_loop callback with {0} byte(s)".format(len(j)))
+            self.log.debug("calling callback from listen_loop() with {0} byte(s)".format(len(j)))
             callback(j)
 
     def _write_to_pipe(self, data, prefix='json:', suffix=RS):
@@ -218,10 +218,10 @@ class ForkedSaltPipeWriter(SaltConfigMixin):
             os.write( self.write_fd, suffix )
 
     def pipe_loop(self, write_fd):
-        self.log.debug("entering pipe_loop")
+        self.log.debug("entering pipe_loop()")
 
         if self.ppid is not None or self.kpid is not None:
-            self.log.debug("already looping??")
+            self.log.debug("pipe_loop() thinks we're already looping, aborting (another) fork")
             return
 
         self.ppid = os.getpid()
@@ -236,7 +236,7 @@ class ForkedSaltPipeWriter(SaltConfigMixin):
         signal.signal(signal.SIGINT, see_ya)
 
         self.write_fd = write_fd
-        self.main_loop(self._write_to_pipe)
+        self.listen_loop(self._write_to_pipe)
 
     def see_ya(self):
         if self.kpid:
