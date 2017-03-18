@@ -32,6 +32,7 @@ class Matcher(object):
 
     def __bool__(self):
         return bool(self.m)
+    __nonzero__=__bool__
 
     def __repr__(self):
         b = 'Matcher<{0}>'.format(self.p)
