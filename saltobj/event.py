@@ -14,6 +14,20 @@ SHOW_JIDS = False
 NA = '<n/a>'
 tagtop_re = re.compile(r'^\s*([^\s{}:]+)\s*{')
 
+REFORMAT_IDS = lambda x: x
+
+def reformat_minion_ids(matchers):
+    def _m(minion_id):
+        log = logging.getLogger('REFORMAT_IDS')
+        for matcher in matchers:
+            if matcher.match(minion_id):
+                log.debug("matcher={0} matched id={1}".format(matcher, minion_id))
+                minion_id = '.'.join(matcher.groups())
+                log.debug("        reformatted id={0}".format(minion_id))
+        return minion_id
+    global REFORMAT_IDS
+    REFORMAT_IDS = _m
+
 class Job(object):
     def __init__(self, jid):
         self.jid       = jid
@@ -254,7 +268,7 @@ class Event(SaltConfigMixin):
 
     @property
     def who(self):
-        return self.try_attr('id')
+        return REFORMAT_IDS( self.try_attr('id') )
 
     @property
     def what(self):

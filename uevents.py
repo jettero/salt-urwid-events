@@ -4,7 +4,14 @@ import urwidobj
 import misc
 
 if __name__=="__main__":
+    misc.be_root_you_fool()
+
     parser = misc.ArgumentParser( prog='uevents' )
+
+    parser.add_argument('--id-format', type=misc.Matcher, nargs='*',
+        help="use a regex to reformat ids if yours are long or troublesome. "
+             "option can be repeated, regex must use capture groups"
+             "(e.g., (.+).long.domainname.here)")
 
     parser.add_argument('--logfile', type=str, default='uevents.log',
         help="write a log file for the session, set to 'no'/'off'/'' to disable [default: %(default)s]")
@@ -18,7 +25,9 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    misc.be_root_you_fool()
+    if args.id_format:
+        import saltobj.event
+        saltobj.event.reformat_minion_ids(args.id_format)
 
     app = urwidobj.EventApplication(args)
     app.run()
