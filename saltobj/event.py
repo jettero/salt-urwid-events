@@ -387,7 +387,7 @@ class Publish(JobEvent):
         else:
             tv = '<{0}>@{1}'.format( self.try_attr('tgt_type'), self.try_attr('tgt') )
 
-        return '{target} {fun} {fun_args}'.format(
+        return u'{target} {fun} {fun_args}'.format(
             target=tv, fun=self.try_attr('fun'),
             fun_args=self.try_attr('arg', preformat=my_args_format),
         )
