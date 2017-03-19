@@ -29,8 +29,6 @@ class EventButton(urwid.Button):
         super(EventButton,self).__init__(event.short)
         urwid.connect_signal(self, 'click', callback)
         self._label.set_wrap_mode('clip')
-        attr_map  = None
-        focus_map = None # 'selected'
         self._focused_decoration = urwid.Text(u' ')
         self._w = urwid.Columns( [
             ('fixed',1,self._focused_decoration),
@@ -39,7 +37,7 @@ class EventButton(urwid.Button):
         command_map_extra.add_vim_right_activate(self)
 
     def update_label(self):
-        pass
+        self._label.set_text( self.event.short )
 
     def render(self, size, focus=False):
         self._focused_decoration.set_text( u'·' if focus else ' ' )
