@@ -83,6 +83,8 @@ class EventButton(urwid.Button):
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
         command_map_extra.add_vim_right_activate(self)
 
+        self.evno = self.event.raw.get('_evno',999)
+
     def render(self, size, focus=False):
         self._label.set_text( u'·' if focus else u' ' )
         return super(EventButton,self).render(size,focus=focus)
