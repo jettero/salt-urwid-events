@@ -26,18 +26,19 @@ class EventButton(urwid.Button):
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
         self.event = event
-        super(EventButton,self).__init__(event.short)
+        super(EventButton,self).__init__(u' ')
         urwid.connect_signal(self, 'click', callback)
-        self._label.set_wrap_mode('clip')
-        self._focused_decoration = urwid.Text(u' ')
-        self._w = urwid.Columns( [
-            ('fixed',1,self._focused_decoration),
-            self._label
-        ])
+
+        evc = self.event.columns
+
+        columns = [('fixed', 1, self._label)]
+        columns.extend([ ColumnText(c) for c in evc ])
+
+        self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
         command_map_extra.add_vim_right_activate(self)
 
     def render(self, size, focus=False):
-        self._focused_decoration.set_text( u'·' if focus else ' ' )
+        self._label.set_text( u'·' if focus else u' ' )
         return super(EventButton,self).render(size,focus=focus)
 
     @property
