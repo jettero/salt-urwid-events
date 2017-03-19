@@ -19,11 +19,55 @@ class AnsiableText(urwid.Text):
         super(AnsiableText,self).set_text( text )
 
 class ColumnText(urwid.Text): 
+    minor_max = 0
+
     def __init__(self,text):
         super(ColumnText,self).__init__(text, wrap='clip', align='left')
+        self.log = logging.getLogger(self.__class__.__name__)
+
+    def pack(self,size,*a,**kw):
+        if self.minor_max:
+            r = (self.minor_max,1)
+            self.log.debug('  minor_max={0} returning={1}'.format(self.minor_max,r))
+            return r
+        return super(ColumnText,self).pack(size,*a,**kw)
 
 class EventListWalker(urwid.SimpleFocusListWalker):
-    pass
+    minor_max = 30
+
+    def __init__(self,*a,**kw):
+        super(EventListWalker,self).__init__(*a,**kw)
+        self.log = logging.getLogger(self.__class__.__name__)
+
+    def _modified(self):
+        super(EventListWalker,self)._modified()
+
+        minor_maxes = []
+
+        for item in self:
+            if isinstance(item, EventButton):
+                c = [ x.pack((self.minor_max,))[0] for x in item._w.widget_list[1:-1] ]
+                for i,l in enumerate(c):
+                    if i >= len(minor_maxes):
+                        minor_maxes.append(l)
+                    elif minor_maxes[i] < l:
+                        minor_maxes[i] = l
+
+        did_something = False
+        for item in self:
+            if isinstance(item, EventButton):
+                wl = item._w.widget_list
+                for i,m in enumerate(minor_maxes):
+                    if wl[i+1].minor_max != m:
+                        wl[i+1].minor_max = m
+                        did_something = True
+
+        if did_something:
+            for item in self:
+                if isinstance(item, EventButton):
+                    for w in item._w.widget_list:
+                        w._invalidate()
+            self._invalidate()
 
 class EventButton(urwid.Button):
     _viewer = None
@@ -36,10 +80,8 @@ class EventButton(urwid.Button):
         super(EventButton,self).__init__(u' ')
         urwid.connect_signal(self, 'click', callback)
 
-        evc = self.event.columns
-
-        columns = [('fixed', 1, self._label)]
-        columns.extend([ ColumnText(c) for c in evc ])
+        columns = [('fixed', 1, self._label)] + [
+            ('pack',ColumnText(c)) for c in self.event.columns ]
 
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
         command_map_extra.add_vim_right_activate(self)
