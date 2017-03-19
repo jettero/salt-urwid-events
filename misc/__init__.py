@@ -5,6 +5,9 @@ from xlateansi import xlate_ansi, format_code
 from list_ptr  import ListWithPtr
 from matcher   import Matcher
 
+LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s[%(process)d]: %(message)s"
+LOG_FORMAT = "%(name)s.%(process)d: %(message)s"
+
 def be_root_you_fool():
     import os
     if os.getuid() > 0:
@@ -15,8 +18,7 @@ def be_root_you_fool():
         print "error??"
         exit(1)
 
-def setup_file_logger(args, tag='component-name-here',
-    format="%(asctime)s %(levelname)s %(name)s[%(process)d]: %(message)s"):
+def setup_file_logger(args, tag='component-name-here', format=LOG_FORMAT):
     import logging, sys
 
     # translate loglevel string to logging.<level>
