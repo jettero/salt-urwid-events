@@ -7,7 +7,7 @@
 
 my_dir="$(dirname "$0")"
 u_py="$my_dir/uevents.py"
-u_log="$my_dir/uevents.py"
+u_log="$my_dir/uevents.log"
 
 source bash/emergency-kill-urwid.sh
 
