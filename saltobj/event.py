@@ -525,5 +525,5 @@ class EventSend(Event):
     def what(self):
         return (
             self.tag,
-            self.sent,
+            json.dumps(self.sent),
         )
