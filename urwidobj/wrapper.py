@@ -38,8 +38,6 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         self.log = logging.getLogger(self.__class__.__name__)
 
     def _modified(self):
-        super(EventListWalker,self)._modified()
-
         minor_maxes = []
 
         for item in self:
@@ -56,16 +54,17 @@ class EventListWalker(urwid.SimpleFocusListWalker):
             if isinstance(item, EventButton):
                 wl = item._w.widget_list
                 for i,m in enumerate(minor_maxes):
-                    if wl[i+1].minor_max != m:
-                        wl[i+1].minor_max = m
+                    if wl[i+1].minor_max == 0:
                         did_something = True
+                    wl[i+1].minor_max = m
 
         if did_something:
             for item in self:
                 if isinstance(item, EventButton):
                     for w in item._w.widget_list:
                         w._invalidate()
-            self._invalidate()
+
+        super(EventListWalker,self)._modified()
 
 class EventButton(urwid.Button):
     _viewer = None
