@@ -70,9 +70,12 @@ class EventApplication(object):
 
         self.loop = urwid.MainLoop(*_a, **_kw)
 
-        if not self.curses_mode:
-            self.show_cursor = urwid.escape.SHOW_CURSOR
-            urwid.escape.SHOW_CURSOR = ''
+        # OLD0319: this was needed when the event buttons had selectable icons, which 
+        #          always contain a cursor for some reason (why?); this has a counterpart
+        #          cruft-comment the same OLD0319 comment tag
+        # if not self.curses_mode:
+        #     self.show_cursor = urwid.escape.SHOW_CURSOR
+        #     urwid.escape.SHOW_CURSOR = ''
 
         self._write_fd = self.loop.watch_pipe(self.got_pipe_data)
         self.log.debug('urwid.loop.watch_pipe() write_fd={0}'.format(self._write_fd))
@@ -127,10 +130,11 @@ class EventApplication(object):
         self.sevent.see_ya()
 
     def see_ya(self,*x):
-        if not self.curses_mode:
-            # we disable show_cursor in raw_display (but not in curses mode)
-            # so if we're in raw display, we have to show cursor again at the end
-            self.loop.screen.write( self.show_cursor )
+        # OLD0319
+        # if not self.curses_mode:
+        #     # we disable show_cursor in raw_display (but not in curses mode)
+        #     # so if we're in raw display, we have to show cursor again at the end
+        #     self.loop.screen.write( self.show_cursor )
         if len(x):
             self.log.debug("received signal={0}".format(x[0]))
         self.sevent.see_ya()
