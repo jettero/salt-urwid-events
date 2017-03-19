@@ -4,6 +4,7 @@ import logging, copy
 import json, urwid, inspect, re
 import dateutil.parser, datetime
 from fnmatch import fnmatch
+from collections import OrderedDict
 
 import salt.output
 
@@ -41,6 +42,31 @@ class Job(object):
         if event.dtime and (not self.dtime or self.dtime < event.dtime):
             self.dtime = event.dtime
         self.events.append(event)
+
+    @property
+    def counts(self):
+        return 'returns={0}/{1}'.format( len(self.returned), len(self.expected) )
+
+    @property
+    def succeeded(self):
+        c = t = 0
+        for event in self.events:
+            if hasattr(event,'success'):
+                if event.success is not NA:
+                    t += 1
+                    if event.success:
+                        c += 1
+        if t:
+            return (c,t)
+
+    @property
+    def columns(self):
+        c = [ self.jid, self.counts, self.succeeded ]
+        if c[-1] is None:
+            c[-1] = ''
+        else:
+            c[-1] = 'success={0}/{1}'.format( *c[-1] )
+        return c
 
     @property
     def waiting(self):

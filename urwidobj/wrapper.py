@@ -34,6 +34,8 @@ class EventListWalker(urwid.SimpleFocusListWalker):
     minor_max = 30
 
     def __init__(self,*a,**kw):
+        if not a:
+            a = ([],)
         super(EventListWalker,self).__init__(*a,**kw)
         self.log = logging.getLogger(self.__class__.__name__)
 
@@ -66,25 +68,35 @@ class EventListWalker(urwid.SimpleFocusListWalker):
 
         super(EventListWalker,self)._modified()
 
+class JobListWalker(EventListWalker):
+    pass
+
+
 class EventButton(urwid.Button):
     _viewer = None
+    _req_type = saltobj.event.Event
 
-    def __init__(self, event, callback):
+    def __init__(self, in_obj, callback):
         self.log = logging.getLogger(self.__class__.__name__)
-        if not isinstance(event,saltobj.event.Event):
-            raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
-        self.event = event
+        if not isinstance(in_obj,self._req_type):
+            raise TypeError("wrapped object type mismatch")
+        self.wrapped = in_obj
         super(EventButton,self).__init__(u' ')
         urwid.connect_signal(self, 'click', callback)
 
-        evc = self.event.columns
+        evc = self.wrapped.columns
         columns = [('fixed', 1, self._label)] + [ ('pack',ColumnText(c)) for c in evc[:-1] ]
         columns.append(ColumnText(evc[-1]))
 
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
         command_map_extra.add_vim_right_activate(self)
 
-        self.evno = self.event.raw.get('_evno',999)
+        self.evno = 999
+        if hasattr(self.wrapped,'raw') and '_evno' in self.wrapped.raw:
+            self.evno = self.wrapped.raw.get('_evno',999)
+
+        elif hasattr(self.wrapped,'jid'):
+            self.evno = self.wrapped.jid
 
     def render(self, size, focus=False):
         self._label.set_text( u'·' if focus else u' ' )
@@ -93,8 +105,15 @@ class EventButton(urwid.Button):
     @property
     def viewer(self):
         if not self._viewer:
-            self._viewer = EventViewer(self.event)
+            self._viewer = EventViewer(self.wrapped)
         return self._viewer
+
+class JobButton(EventButton):
+    _req_type = saltobj.event.Job
+
+    @property
+    def viewer(self):
+        raise Exception("TODO")
 
 class CodeViewer(AnsiableText):
     def __init__(self,event):

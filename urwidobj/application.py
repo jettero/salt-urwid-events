@@ -13,6 +13,8 @@ class EventApplication(object):
     pallet = get_pallet('main')
     event_no = 0
 
+    max_events = 100
+
     def __init__(self, args):
         self.args = args
 
@@ -32,11 +34,14 @@ class EventApplication(object):
                 fh.write('1000')
         ############# /OOM
 
-        self.jidcollector = saltobj.JidCollector()
+        self.events_listwalker = wrapper.EventListWalker()
+        self.events_listbox    = urwid.ListBox(self.events_listwalker)
 
-        self.events = []
-        self.events_listwalker = wrapper.EventListWalker(self.events)
-        self.events_listbox = urwid.ListBox(self.events_listwalker)
+        self.jidcollector    = saltobj.JidCollector()
+        self.jobs_listwalker = wrapper.JobListWalker()
+        self.jobs_listbox    = urwid.ListBox(self.jobs_listwalker)
+
+        self.jidcollector.on_change(self.deal_with_job_changes)
 
         status_line = urwid.Columns([
             urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
@@ -177,6 +182,10 @@ class EventApplication(object):
         self.log.debug("skipping pop page (depth={0})".format(l))
         return False
 
+    def deal_with_job_changes(self, jitem, actions):
+        if not jitem in self.jobs_listwalker:
+            self.jobs_listwalker.append( wrapper.JobButton(jitem, lambda: True) )
+
     def event_button_click(self, evw):
         self.log.debug('event_button_click(evw={0})'.format(evw))
         self.log.debug("main_frame.contents[body]={0}".format(self.main_frame.contents['body']))
@@ -187,6 +196,8 @@ class EventApplication(object):
         self.jidcollector.examine_event(event)
         evw = wrapper.EventButton(event, self.event_button_click)
         self.events_listwalker.append(evw)
+        while len(self.events_listwalker) > self.max_events:
+            self.events.listwalker.pop(0)
         gf1 = self.events_listwalker.get_focus()[1]
         gfn = self.events_listwalker.get_next(gf1)
         try: self.log.debug(' gfn[0].evno={0} is evw.evno={1} ?'.format(gfn[0].evno,evw.evno))
