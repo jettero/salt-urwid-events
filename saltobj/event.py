@@ -502,26 +502,24 @@ class JCReturn(Return):
 
 class EventSend(Event):
     matches = (
-        ('cmd',       '_minion_event'),
-        ('__pub_fun', 'event.send'),
+        ('cmd', '_minion_event'),
     )
 
     def __init__(self, *args, **kwargs):
         super(EventSend,self).__init__(*args,**kwargs)
 
         dat = self.dat
-        while '__pub_fun' not in dat and 'data' in dat:
+        while dat.get('cmd') == '_minion_event' and 'data' in dat:
             dat = dat['data']
 
         self.sent = {}
-        if '__pub_fun' in dat:
-            self.sent = copy.deepcopy(dat)
-            to_remove = set()
-            for k in self.sent:
-                if k.startswith('__'):
-                    to_remove.add(k)
-            for k in to_remove:
-                del self.sent[k]
+        self.sent = copy.deepcopy(dat)
+        to_remove = set()
+        for k in self.sent:
+            if k.startswith('__'):
+                to_remove.add(k)
+        for k in to_remove:
+            del self.sent[k]
 
     @property
     def what(self):
