@@ -36,9 +36,6 @@ class EventButton(urwid.Button):
         ])
         command_map_extra.add_vim_right_activate(self)
 
-    def update_label(self):
-        self._label.set_text( self.event.short )
-
     def render(self, size, focus=False):
         self._focused_decoration.set_text( u'·' if focus else ' ' )
         return super(EventButton,self).render(size,focus=focus)

@@ -149,20 +149,6 @@ def classify_event(json_data):
             return cls(raw)
     return Event(raw)
 
-misc_format_lengths = {}
-def misc_format_width(tag, the_str, lr='<', max=None):
-    if the_str is NA:
-        the_str = ''
-    the_str = u'{0}'.format(the_str)
-    l = misc_format_lengths.get(tag,0)
-    this_len = len(the_str)
-    if max and this_len > max:
-        this_len = max
-        the_str  = the_str[0:max-1] + '…'
-    if this_len > l:
-        misc_format_lengths[tag] = l = this_len
-    return u'{0:{lr}{w}s}'.format( the_str, lr=lr, w=l )
-
 def my_args_format(x):
     if not x or x is NA:
         return ''
@@ -288,8 +274,7 @@ class Event(SaltConfigMixin):
 
     @property
     def short(self):
-        columns = [ misc_format_width('col{0}'.format(i), c) for i,c in enumerate(self.columns) ]
-        return ' '.join(columns).replace('<n/a>','')
+        return ' '.join(self.columns).replace('<n/a>','')
 
     def __repr__(self):
         return '{0.evno} {0.cname}'.format(self)
