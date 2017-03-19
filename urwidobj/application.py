@@ -32,6 +32,8 @@ class EventApplication(object):
                 fh.write('1000')
         ############# /OOM
 
+        #self.jidcollector = saltobj.JidCollector()
+
         self.events = []
         self.events_listwalker = wrapper.EventListWalker(self.events)
         self.events_listbox = urwid.ListBox(self.events_listwalker)

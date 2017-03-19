@@ -46,7 +46,7 @@ class Job(object):
     def waiting(self):
         return bool( self.expected )
 
-class jidcollector(object):
+class JidCollector(object):
     def __init__(self):
         self.jids = {}
 
