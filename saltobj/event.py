@@ -49,6 +49,7 @@ class Job(object):
 class JidCollector(object):
     def __init__(self):
         self.jids = {}
+        self.listeners = []
 
     def on_change(self, callback):
         if callback not in self.listeners:

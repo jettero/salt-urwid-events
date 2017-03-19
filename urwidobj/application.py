@@ -32,7 +32,7 @@ class EventApplication(object):
                 fh.write('1000')
         ############# /OOM
 
-        #self.jidcollector = saltobj.JidCollector()
+        self.jidcollector = saltobj.JidCollector()
 
         self.events = []
         self.events_listwalker = wrapper.EventListWalker(self.events)
@@ -184,6 +184,7 @@ class EventApplication(object):
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
+        self.jidcollector.examine_event(event)
         evw = wrapper.EventButton(event, self.event_button_click)
         self.events_listwalker.append(evw)
         gf1 = self.events_listwalker.get_focus()[1]
