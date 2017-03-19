@@ -180,7 +180,7 @@ class EventApplication(object):
         self.log.debug('handle_salt_event()')
         evw = wrapper.EventButton(event, self.event_button_click)
         for ev in self.events_listwalker:
-            ev.update_short()
+            ev.update_label()
         self.events_listwalker.append(evw)
         gf1 = self.events_listwalker.get_focus()[1]
         gfn = self.events_listwalker.get_next(gf1)

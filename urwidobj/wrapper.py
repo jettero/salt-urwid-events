@@ -26,19 +26,24 @@ class EventButton(urwid.Button):
         if not isinstance(event,saltobj.event.Event):
             raise TypeError("urwidobj.wrapper.Event only understands saltobj.event.Event objects")
         self.event = event
-        super(EventButton,self).__init__('')
+        super(EventButton,self).__init__(event.short)
         urwid.connect_signal(self, 'click', callback)
-        cursor_pos_in_button = 0
+        self._label.set_wrap_mode('clip')
         attr_map  = None
-        focus_map = 'selected'
-        self._si = urwid.SelectableIcon(event.short, cursor_pos_in_button)
-        self._si.set_wrap_mode('clip')
-        self._w = urwid.AttrMap(self._si, attr_map, focus_map)
+        focus_map = None # 'selected'
+        self._focused_decoration = urwid.Text(u' ')
+        self._w = urwid.Columns( [
+            ('fixed',1,self._focused_decoration),
+            self._label
+        ])
         command_map_extra.add_vim_right_activate(self)
 
-    def update_short(self):
-        if self.event.short != self._si.text:
-            self._si.set_text( self.event.short )
+    def update_label(self):
+        pass
+
+    def render(self, size, focus=False):
+        self._focused_decoration.set_text( u'·' if focus else ' ' )
+        return super(EventButton,self).render(size,focus=focus)
 
     @property
     def viewer(self):
