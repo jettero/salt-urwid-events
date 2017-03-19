@@ -159,13 +159,13 @@ def my_args_format(x):
     for i in x:
         if isinstance(i,dict):
             for k,v in i.iteritems():
-                ret.append('{0}={1}'.format(k,v))
+                ret.append(u'{0}={1}'.format(k,v))
         else:
             ret.append(i)
     for i,v in enumerate(ret):
-        if ' ' in v:
+        if u' ' in v:
             ret[i] = u'«{0}»'.format(v)
-    return ' '.join(ret)
+    return u' '.join(ret)
 
 def my_jid_format(jid):
     try:
@@ -268,13 +268,13 @@ class Event(SaltConfigMixin):
         columns = []
         for item in [ self.__class__.__name__, self.who, self.what ]:
             if isinstance(item, (list,tuple)):
-                item = ' '.join(item)
-            columns.append(item)
+                item = u' '.join(item)
+            columns.append(item.replace('<n/a>',''))
         return columns
 
     @property
     def short(self):
-        return ' '.join(self.columns).replace('<n/a>','')
+        return u' '.join(self.columns).replace('<n/a>','')
 
     def __repr__(self):
         return '{0.evno} {0.cname}'.format(self)
