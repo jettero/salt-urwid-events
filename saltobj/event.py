@@ -379,10 +379,11 @@ class Publish(JobEvent):
             'glob':         None
         }
 
+        if isinstance(tgt,(list,tuple)):
+            tgt = u','.join(tgt)
+
         if tgt_type in unref:
             if unref[tgt_type] is not None:
-                if isinstance(tgt,(list,tuple)):
-                    u','.join(tgt)
                 tv = u'{0}@{1}'.format(unref[tgt_type],tgt)
             else:
                 tv = u'{0}'.format(tgt)
