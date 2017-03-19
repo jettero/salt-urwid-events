@@ -24,11 +24,11 @@ class ColumnText(urwid.Text):
     def __init__(self,text):
         super(ColumnText,self).__init__(text, wrap='clip', align='left')
 
-    def pack(self,size,*a,**kw):
+    def pack(self,*a,**kw):
         if self.minor_max:
             r = (self.minor_max,1)
             return r
-        return super(ColumnText,self).pack(size,*a,**kw)
+        return super(ColumnText,self).pack(*a,**kw)
 
 class EventListWalker(urwid.SimpleFocusListWalker):
     minor_max = 30
@@ -77,13 +77,18 @@ class EventButton(urwid.Button):
         super(EventButton,self).__init__(u' ')
         urwid.connect_signal(self, 'click', callback)
 
-        columns = [('fixed', 1, self._label)] + [
-            ('pack',ColumnText(c)) for c in self.event.columns ]
+        evc = self.event.columns
+        columns = [('fixed', 1, self._label)] + [ ('pack',ColumnText(c)) for c in evc[:-1] ]
+        columns.append(ColumnText(evc[-1]))
 
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
         command_map_extra.add_vim_right_activate(self)
 
         self.evno = self.event.raw.get('_evno',999)
+
+        self.log.debug(u'added {0}'.format(self.event.short))
+        for c in self.event.columns:
+            self.log.debug(u' - {0}'.format(c))
 
     def render(self, size, focus=False):
         self._label.set_text( u'·' if focus else u' ' )
