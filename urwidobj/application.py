@@ -33,7 +33,7 @@ class EventApplication(object):
         ############# /OOM
 
         self.events = []
-        self.events_listwalker = urwid.SimpleFocusListWalker(self.events)
+        self.events_listwalker = wrapper.EventListWalker(self.events)
         self.events_listbox = urwid.ListBox(self.events_listwalker)
 
         status_line = urwid.Columns([

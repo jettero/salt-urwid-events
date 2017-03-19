@@ -18,6 +18,13 @@ class AnsiableText(urwid.Text):
             text = xlate_ansi(text)
         super(AnsiableText,self).set_text( text )
 
+class ColumnText(urwid.Text): 
+    def __init__(self,text):
+        super(ColumnText,self).__init__(text, wrap='clip', align='left')
+
+class EventListWalker(urwid.SimpleFocusListWalker):
+    pass
+
 class EventButton(urwid.Button):
     _viewer = None
 
