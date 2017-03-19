@@ -86,10 +86,6 @@ class EventButton(urwid.Button):
 
         self.evno = self.event.raw.get('_evno',999)
 
-        self.log.debug(u'added {0}'.format(self.event.short))
-        for c in self.event.columns:
-            self.log.debug(u' - {0}'.format(c))
-
     def render(self, size, focus=False):
         self._label.set_text( u'·' if focus else u' ' )
         return super(EventButton,self).render(size,focus=focus)
