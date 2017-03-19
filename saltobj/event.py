@@ -349,7 +349,11 @@ class Publish(JobEvent):
         super(Publish,self).__init__(*args,**kwargs)
         self.user    = self.dat.get('user', NA)
         self.minions = self.dat.get('minions', [])
-        self.who     = 'local'
+        self.who     = self.dat.get('user', 'local')
+        if self.who.startswith('sudo_'):
+            self.who = self.who[5:]
+        if not self.who or self.who == 'root':
+            self.who = 'local'
 
     @property
     def what(self):
