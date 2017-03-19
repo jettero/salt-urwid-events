@@ -278,14 +278,17 @@ class Event(SaltConfigMixin):
         )
 
     @property
-    def short(self):
+    def columns(self):
         columns = []
         for item in [ self.__class__.__name__, self.who, self.what ]:
             if isinstance(item, (list,tuple)):
                 item = ' '.join(item)
             columns.append(item)
+        return columns
 
-        columns = [ misc_format_width('col{0}'.format(i), c) for i,c in enumerate(columns) ]
+    @property
+    def short(self):
+        columns = [ misc_format_width('col{0}'.format(i), c) for i,c in enumerate(self.columns) ]
         return ' '.join(columns).replace('<n/a>','')
 
     def __repr__(self):
