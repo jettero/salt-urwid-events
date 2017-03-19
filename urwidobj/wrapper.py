@@ -23,12 +23,10 @@ class ColumnText(urwid.Text):
 
     def __init__(self,text):
         super(ColumnText,self).__init__(text, wrap='clip', align='left')
-        self.log = logging.getLogger(self.__class__.__name__)
 
     def pack(self,size,*a,**kw):
         if self.minor_max:
             r = (self.minor_max,1)
-            self.log.debug('  minor_max={0} returning={1}'.format(self.minor_max,r))
             return r
         return super(ColumnText,self).pack(size,*a,**kw)
 
