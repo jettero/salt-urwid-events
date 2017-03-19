@@ -186,7 +186,8 @@ class EventApplication(object):
         self.events_listwalker.append(evw)
         gf1 = self.events_listwalker.get_focus()[1]
         gfn = self.events_listwalker.get_next(gf1)
-        self.log.debug(' gfn[0].evno={0} is evw.evno={1} ?'.format(gfn[0].evno,evw.evno))
+        try: self.log.debug(' gfn[0].evno={0} is evw.evno={1} ?'.format(gfn[0].evno,evw.evno))
+        except: self.log.debug('considering focus update')
         if gfn[0] is evw:
             self.log.debug(' update_focus(gfn[1]={0})'.format(gfn[1]))
             self.events_listwalker.set_focus(gfn[1])
