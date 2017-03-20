@@ -82,7 +82,8 @@ class Job(object):
         c.append( self.what )
         c.append( u'events={0}'.format( self.event_count ) )
         c.append( u'returned={0}/{1}'.format( *self.returned_count ) )
-        c.append( u'succeeded={0}/{1}'.format( *self.succeeded_count ) )
+        s = self.succeeded_count
+        c.append( u'succeeded={0}/{1}'.format( *s ) if s else '' )
         return c
 
     @property
