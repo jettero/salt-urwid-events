@@ -43,8 +43,8 @@ class EventApplication(object):
 
         self.jidcollector.on_change(self.deal_with_job_changes)
 
-        start_page = self.jobs_listbox
-        # self.events_listbox
+      # start_page = self.jobs_listbox
+        start_page = self.events_listbox
 
         status_line = urwid.Columns([
             urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
@@ -95,7 +95,7 @@ class EventApplication(object):
 
     def save_event(self):
         gf0 = self.events_listwalker.get_focus()[0]
-        evr = gf0.event.raw
+        evr = gf0.wrapped.raw
         evn = evr.get('_evno', 999)
         fname = '/tmp/{0}.event-{1:04d}.json'.format(os.getpid(), evn)
         with open(fname, 'w') as fh:
