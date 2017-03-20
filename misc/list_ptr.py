@@ -1,6 +1,9 @@
 
 import urwid.monitored_list
 
+# I think this might be partially re-inventing-the-wheel …
+# isn't this what list walkers are for?
+
 class ListWithPtr(urwid.monitored_list.MonitoredList):
     _pos = -1
     siv  = []
