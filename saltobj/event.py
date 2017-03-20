@@ -66,7 +66,9 @@ class Job(object):
             c[-1] = ''
         else:
             c[-1] = 'success={0}/{1}'.format( *c[-1] )
-        return c
+
+        import time
+        return c + ['[debug]time={0}'.format( time.time() )]
 
     @property
     def waiting(self):

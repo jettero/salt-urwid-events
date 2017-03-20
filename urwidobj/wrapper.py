@@ -69,8 +69,9 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         super(EventListWalker,self)._modified()
 
 class JobListWalker(EventListWalker):
-    pass
 
+    def updated(self):
+        self._modified()
 
 class EventButton(urwid.Button):
     _viewer = None
@@ -114,6 +115,9 @@ class JobButton(EventButton):
     @property
     def viewer(self):
         raise Exception("TODO")
+
+    def updated(self):
+        self._invalidate()
 
 class CodeViewer(AnsiableText):
     def __init__(self,event):

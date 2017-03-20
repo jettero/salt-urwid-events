@@ -43,6 +43,9 @@ class EventApplication(object):
 
         self.jidcollector.on_change(self.deal_with_job_changes)
 
+        start_page = self.jobs_listbox
+        # self.events_listbox
+
         status_line = urwid.Columns([
             urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
             urwid.AttrMap(urwid.Padding(self.key_hints_txt, right=1), 'status'),
@@ -53,11 +56,11 @@ class EventApplication(object):
             self.log.debug('attempting to address LR-corner issue in tmux terminals')
             status_line = urwid.Padding(status_line, right=1)
 
-        self.main_frame = urwid.Frame( self.events_listbox, footer=status_line)
+        self.main_frame = urwid.Frame( start_page, footer=status_line)
 
         command_map_extra.add_vim_keys()
 
-        self.page_stack = [self.events_listbox]
+        self.page_stack = [start_page]
 
         self.update_key_hints()
 
@@ -183,8 +186,13 @@ class EventApplication(object):
         return False
 
     def deal_with_job_changes(self, jitem, actions):
-        if not jitem in self.jobs_listwalker:
-            self.jobs_listwalker.append( wrapper.JobButton(jitem, lambda: True) )
+        for jbutt in self.jobs_listwalker:
+            if jbutt.wrapped is jitem:
+                jbutt.updated()
+                self.jobs_listwalker.updated()
+                return
+
+        self.jobs_listwalker.append( wrapper.JobButton(jitem, lambda: True) )
 
     def event_button_click(self, evw):
         self.log.debug('event_button_click(evw={0})'.format(evw))
