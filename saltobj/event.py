@@ -67,7 +67,7 @@ class Job(object):
 
     @property
     def what(self):
-        p_ev = [ x for x in self.events if isinstance(x,Publish) ]
+        p_ev = [ x for x in self.events if isinstance(x,Publish) and not isinstance(x,FindJobPub) ]
         if p_ev:
             if len(p_ev) > 1:
                 self.log.info("jid={0} has more than one Publish".format(self.jid))

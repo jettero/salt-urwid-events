@@ -43,8 +43,8 @@ class EventApplication(object):
 
         self.jidcollector.on_change(self.deal_with_job_changes)
 
-      # start_page = self.jobs_listbox
-        start_page = self.events_listbox
+        start_page = self.jobs_listbox
+      # start_page = self.events_listbox
 
         status_line = urwid.Columns([
             urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
