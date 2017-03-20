@@ -87,7 +87,7 @@ class Job(object):
 
     @property
     def waiting(self):
-        return bool( self.expected )
+        return self.expected - self.returned
 
 class JidCollector(object):
     def __init__(self):
@@ -121,9 +121,6 @@ class JidCollector(object):
                         jitem.expected.add(m)
             if isinstance(event,Return):
                 if event.id in jitem.expected:
-                    if event.id in jitem.expected:
-                        actions.add('remove-expected')
-                        jitem.expected.remove(event.id)
                     if event.id not in jitem.returned:
                         actions.add('add-returned')
                         jitem.returned.add(event.id)
