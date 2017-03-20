@@ -95,6 +95,10 @@ class JidCollector(object):
         self.jids = {}
         self.listeners = []
 
+        # XXX: if we ever get to the point of cleaning up jids from self.jids,
+        # we'll have to remember to clean them from this too
+        self.map_jids = {}
+
     def on_change(self, callback):
         if callback not in self.listeners:
             self.listeners.append(callback)
@@ -107,19 +111,26 @@ class JidCollector(object):
         actions = set()
 
         if hasattr(event,'jid'):
-            if event.jid in self.jids:
-                jitem = self.jids[ event.jid ]
+            if hasattr(event,'fjid'):
+                self.map_jids[ event.jid ] = event.fjid
+            the_jid = self.map_jids.get(event.jid, event.jid)
+
+            if the_jid in self.jids:
+                jitem = self.jids[ the_jid ]
             else:
-                jitem = Job(event.jid)
-                self.jids[ event.jid ] = jitem
+                jitem = Job(the_jid)
+                self.jids[ the_jid ] = jitem
                 actions.add('new-jid')
+
             jitem.append(event)
             actions.add('append-event')
+
             if isinstance(event,ExpectedReturns):
                 for m in event.minions:
                     if m not in jitem.expected:
                         actions.add('add-expected')
                         jitem.expected.add(m)
+
             if isinstance(event,Return):
                 if event.id in jitem.expected:
                     if event.id not in jitem.returned:
