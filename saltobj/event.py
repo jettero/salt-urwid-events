@@ -31,6 +31,8 @@ def reformat_minion_ids(matchers):
 
 class Job(object):
     def __init__(self, jid):
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.jid       = jid
         self.events    = []
         self.expected  = set()
@@ -44,11 +46,15 @@ class Job(object):
         self.events.append(event)
 
     @property
-    def counts(self):
-        return 'returns={0}/{1}'.format( len(self.returned), len(self.expected) )
+    def event_count(self):
+        return len(self.events)
 
     @property
-    def succeeded(self):
+    def returned_count(self):
+        return (len(self.expected),len(self.returned))
+
+    @property
+    def succeeded_count(self):
         c = t = 0
         for event in self.events:
             if hasattr(event,'success'):
@@ -60,15 +66,24 @@ class Job(object):
             return (c,t)
 
     @property
-    def columns(self):
-        c = [ self.jid, self.counts, self.succeeded ]
-        if c[-1] is None:
-            c[-1] = ''
-        else:
-            c[-1] = 'success={0}/{1}'.format( *c[-1] )
+    def what(self):
+        p_ev = [ x for x in self.events if isinstance(x,Publish) ]
+        if p_ev:
+            if len(p_ev) > 1:
+                self.log.info("jid={0} has more than one Publish".format(self.jid))
+                for p in p_ev:
+                    self.log.info(" - {0}".format(p.what))
+            return p_ev[0].what
+        return '?'
 
-        import time
-        return c + ['[debug]time={0}'.format( time.time() )]
+    @property
+    def columns(self):
+        c = [ self.jid ]
+        c.append( self.what )
+        c.append( u'events={0}'.format( self.event_count ) )
+        c.append( u'returned={0}/{1}'.format( *self.returned_count ) )
+        c.append( u'succeeded={0}/{1}'.format( *self.succeeded_count ) )
+        return c
 
     @property
     def waiting(self):
