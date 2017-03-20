@@ -51,7 +51,7 @@ class Job(object):
 
     @property
     def returned_count(self):
-        return (len(self.expected),len(self.returned))
+        return (len(self.returned),len(self.expected))
 
     @property
     def succeeded_count(self):
