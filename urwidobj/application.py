@@ -206,7 +206,7 @@ class EventApplication(object):
         evw = wrapper.EventButton(event, self.event_button_click)
         self.events_listwalker.append(evw)
         while len(self.events_listwalker) > self.max_events:
-            self.events.listwalker.pop(0)
+            self.events_listwalker.pop(0)
         gf1 = self.events_listwalker.get_focus()[1]
         gfn = self.events_listwalker.get_next(gf1)
         try: self.log.debug(' gfn[0].evno={0} is evw.evno={1} ?'.format(gfn[0].evno,evw.evno))

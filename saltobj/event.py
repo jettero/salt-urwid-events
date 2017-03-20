@@ -202,7 +202,7 @@ def my_args_format(x):
             for k,v in i.iteritems():
                 ret.append(u'{0}={1}'.format(k,v))
         else:
-            ret.append(i)
+            ret.append(unicode(i))
     for i,v in enumerate(ret):
         if u' ' in v:
             ret[i] = u'«{0}»'.format(v)
