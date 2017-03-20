@@ -202,11 +202,11 @@ class EventApplication(object):
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
-        self.jidcollector.examine_event(event)
         evw = wrapper.EventButton(event, self.event_button_click)
         self.events_listwalker.append(evw)
         while len(self.events_listwalker) > self.max_events:
             self.events_listwalker.pop(0)
+        self.jidcollector.examine_event(event)
         gf1 = self.events_listwalker.get_focus()[1]
         gfn = self.events_listwalker.get_next(gf1)
         try: self.log.debug(' gfn[0].evno={0} is evw.evno={1} ?'.format(gfn[0].evno,evw.evno))
