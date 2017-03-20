@@ -186,6 +186,8 @@ class EventApplication(object):
         return False
 
     def deal_with_job_changes(self, jitem, actions):
+        self.log.debug('deal_with_job_changes({0.jid},{1})'.format(jitem,actions))
+
         for jbutt in self.jobs_listwalker:
             if jbutt.wrapped is jitem:
                 jbutt.updated()
