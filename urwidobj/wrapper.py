@@ -68,11 +68,6 @@ class EventListWalker(urwid.SimpleFocusListWalker):
 
         super(EventListWalker,self)._modified()
 
-class JobListWalker(EventListWalker):
-
-    def updated(self):
-        self._modified()
-
 class EventButton(urwid.Button):
     _viewer = None
     _req_type = saltobj.event.Event
@@ -109,6 +104,9 @@ class EventButton(urwid.Button):
             self._viewer = EventViewer(self.wrapped)
         return self._viewer
 
+class JobListWalker(EventListWalker):
+    pass
+
 class JobButton(EventButton):
     _req_type = saltobj.event.Job
 
@@ -117,7 +115,12 @@ class JobButton(EventButton):
         raise Exception("TODO")
 
     def updated(self):
-        self._invalidate()
+        evc = self.wrapped.columns
+        wl  = self._w.widget_list
+        assert( len(evc)+1 == len(wl) )
+
+        for i,j in [ (i,i+1,) for i in range(len(evc)) ]:
+            wl[j].set_text( evc[i] )
 
 class CodeViewer(AnsiableText):
     def __init__(self,event):

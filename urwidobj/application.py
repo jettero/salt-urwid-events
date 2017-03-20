@@ -191,7 +191,6 @@ class EventApplication(object):
         for jbutt in self.jobs_listwalker:
             if jbutt.wrapped is jitem:
                 jbutt.updated()
-                self.jobs_listwalker.updated()
                 return
 
         self.jobs_listwalker.append( wrapper.JobButton(jitem, lambda: True) )
