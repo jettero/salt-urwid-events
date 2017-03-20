@@ -120,6 +120,7 @@ class JobButton(EventButton):
         assert( len(evc)+1 == len(wl) )
 
         for i,j in [ (i,i+1,) for i in range(len(evc)) ]:
+            # should we check to see if the text really changed before we change it?
             wl[j].set_text( evc[i] )
 
 class CodeViewer(AnsiableText):
