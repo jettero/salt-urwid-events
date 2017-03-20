@@ -346,11 +346,7 @@ class JobEvent(Event):
         self.tgt      = self.dat.get('tgt', NA)
         self.tgt_type = self.dat.get('tgt_type', NA)
 
-        self.args = self.dat.get('args', [])
-        if self.args is None or not self.args:
-            self.args = self.dat.get('fun_args', [])
-            if self.args is None:
-                self.args = []
+        self.args = self.try_attr( ('arg','args','fun_args',), [] )
 
         asr = [ ]
         for x in self.args:
@@ -572,7 +568,34 @@ class EventSend(Event):
 
     @property
     def what(self):
-        return (
-            self.tag,
-            json.dumps(self.sent),
-        )
+        return ( self.tag, json.dumps(self.sent) )
+
+
+# These two aren't very DRY ... I wanted to do this fjid/what stuff as a mixin,
+# but apparently that won't work with properties or ... it failed in some other way
+class FindJobPub(Publish):
+    matches = Publish.matches + ( ('fun', 'saltutil.find_job'), )
+
+    @property
+    def fjid(self):
+        a = self.args
+        if a:
+            return a[0]
+
+    @property
+    def what(self):
+        return 'fjid={0}'.format(self.fjid or '?')
+
+
+class FindJobRet(Return):
+    matches = Return.matches  + ( ('fun', 'saltutil.find_job'), )
+
+    @property
+    def fjid(self):
+        a = self.args
+        if a:
+            return a[0]
+
+    @property
+    def what(self):
+        return 'fjid={0}'.format(self.fjid or '?')
