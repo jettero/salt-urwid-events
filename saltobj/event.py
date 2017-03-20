@@ -66,6 +66,14 @@ class Job(object):
             return (c,t)
 
     @property
+    def find_count(self):
+        c = 0
+        for event in self.events:
+            if isinstance(event,FindJobPub):
+                c += 1
+        return c
+
+    @property
     def what(self):
         p_ev = [ x for x in self.events if isinstance(x,Publish) and not isinstance(x,FindJobPub) ]
         if p_ev:
@@ -74,16 +82,22 @@ class Job(object):
                 for p in p_ev:
                     self.log.info(" - {0}".format(p.what))
             return p_ev[0].what
-        return '?'
+        return ''
 
     @property
     def columns(self):
         c = [ self.jid ]
-        c.append( self.what )
         c.append( u'events={0}'.format( self.event_count ) )
         c.append( u'returned={0}/{1}'.format( *self.returned_count ) )
+
         s = self.succeeded_count
-        c.append( u'succeeded={0}/{1}'.format( *s ) if s else '' )
+        c.append( u'succeeded={0}/{1}'.format(*s) if s else '' )
+
+        f = self.find_count
+        c.append( u'AYT={0}'.format(f) if f else '' )
+
+        c.append( self.what )
+
         return c
 
     @property
