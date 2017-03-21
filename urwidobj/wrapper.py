@@ -25,7 +25,9 @@ class ColumnText(urwid.Text):
         super(ColumnText,self).__init__(text, wrap='clip', align='left')
 
     def pack(self,*a,**kw):
-        if self.minor_max:
+        try: recompute = kw.pop('recompute')
+        except: recompute = False
+        if not recompute and self.minor_max:
             r = (self.minor_max,1)
             return r
         return super(ColumnText,self).pack(*a,**kw)
@@ -50,7 +52,7 @@ class EventListWalker(urwid.SimpleFocusListWalker):
 
         for item in self:
             if isinstance(item, EventButton):
-                c = [ x.pack((self.minor_max,))[0] for x in item._w.widget_list[1:-1] ]
+                c = [ x.pack((self.minor_max,),recompute=True)[0] for x in item._w.widget_list[1:-1] ]
                 for i,l in enumerate(c):
                     if i >= len(minor_maxes):
                         minor_maxes.append(l)
