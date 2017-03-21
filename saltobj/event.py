@@ -42,6 +42,7 @@ class Job(object):
         self.find_jobs = {}
 
         self.tracking_list = None
+        self.tracking_list_class = None
 
     @property
     def all_events(self):
@@ -50,15 +51,19 @@ class Job(object):
             ev.extend(evl)
         return sorted(ev, key=lambda x: x.evno)
 
-    def setup_tracking_list(self, obj):
+    def setup_tracking_list(self, obj, wrapper_class=None):
         import weakref
         self.tracking_list = weakref.ref(obj)
+        self.tracking_list_class = wrapper_class
 
     def track(self, *x):
         if self.tracking_list is not None:
             r = self.tracking_list()
             if r is not None:
-                r.extend(x)
+                if self.tracking_list_class:
+                    r.extend([ self.tracking_list_class(i) for i in x ])
+                else:
+                    r.extend(x)
 
     def append(self, event):
         self.track(event)
