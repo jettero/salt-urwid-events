@@ -52,7 +52,6 @@ class ListWithPtr(urwid.monitored_list.MonitoredList):
     def pos(self, v):
         self._pos = v
         self._modified()
-        return self.pos
 
     def __repr__(self):
         p = self.pos
