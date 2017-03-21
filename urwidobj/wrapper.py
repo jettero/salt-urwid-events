@@ -112,7 +112,9 @@ class JobButton(EventButton):
 
     @property
     def viewer(self):
-        raise Exception("TODO")
+        elw = EventListWalker([ EventButton(x) for x in self.wrapped.all_events ])
+        lb = urwid.ListBox( elw )
+        return lb
 
     def updated(self):
         evc = self.wrapped.columns

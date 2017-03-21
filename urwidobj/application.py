@@ -217,7 +217,12 @@ class EventApplication(object):
                 jbutt.updated()
                 return
 
-        self.jobs_listwalker.append( wrapper.JobButton(jitem, lambda: True) )
+        self.jobs_listwalker.append( wrapper.JobButton(jitem, self.job_button_click) )
+
+    def job_button_click(self, jobw):
+        self.log.debug('job_button_click(jobw{0})'.format(jobw))
+        self.log.debug("main_frame.contents[body]={0}".format(self.main_frame.contents['body']))
+        self.push_page( jobw.viewer )
 
     def event_button_click(self, evw):
         self.log.debug('event_button_click(evw={0})'.format(evw))
