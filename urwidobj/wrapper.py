@@ -98,7 +98,6 @@ class EventButton(urwid.Button):
         self._label.set_text( u'·' if focus else u' ' )
         return super(EventButton,self).render(size,focus=focus)
 
-    @property
     def viewer(self):
         if not self._viewer:
             self._viewer = EventViewer(self.wrapped)
@@ -110,9 +109,8 @@ class JobListWalker(EventListWalker):
 class JobButton(EventButton):
     _req_type = saltobj.event.Job
 
-    @property
-    def viewer(self):
-        elw = EventListWalker([ EventButton(x) for x in self.wrapped.all_events ])
+    def viewer(self, ev_click_cb):
+        elw = EventListWalker([ EventButton(x, ev_click_cb) for x in self.wrapped.all_events ])
         lb = urwid.ListBox( elw )
         return lb
 

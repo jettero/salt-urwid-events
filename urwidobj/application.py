@@ -222,12 +222,12 @@ class EventApplication(object):
     def job_button_click(self, jobw):
         self.log.debug('job_button_click(jobw{0})'.format(jobw))
         self.log.debug("main_frame.contents[body]={0}".format(self.main_frame.contents['body']))
-        self.push_page( jobw.viewer )
+        self.push_page( jobw.viewer(self.event_button_click) )
 
     def event_button_click(self, evw):
         self.log.debug('event_button_click(evw={0})'.format(evw))
         self.log.debug("main_frame.contents[body]={0}".format(self.main_frame.contents['body']))
-        self.push_page( evw.viewer )
+        self.push_page( evw.viewer() )
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
