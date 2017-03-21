@@ -39,11 +39,21 @@ class Job(object):
         self.returned  = set()
         self.listeners = []
         self.dtime     = None
+        self.find_jobs = {}
 
     def append(self, event):
+        if isinstance(event, (FindJobPub,FindJobRet)):
+            if event.jid not in self.find_jobs:
+                self.find_jobs[ event.jid ] = []
+            self.find_jobs[ event.jid ].append( event )
+            return
+
         if event.dtime and (not self.dtime or self.dtime < event.dtime):
             self.dtime = event.dtime
         self.events.append(event)
+
+    def subsume(self, jitem):
+        self.events.extend([ ev for ev in jitem.events if ev not in self.events ])
 
     @property
     def event_count(self):
@@ -67,11 +77,11 @@ class Job(object):
 
     @property
     def find_count(self):
-        c = 0
-        for event in self.events:
-            if isinstance(event,FindJobPub):
-                c += 1
-        return c
+        self.log.debug( 'find_count() jids in find: {0}'.format(self.find_jobs.keys()) )
+        p = 0
+        for i in self.find_jobs.values():
+            p += len(i)
+        return p
 
     @property
     def what(self):
@@ -106,6 +116,8 @@ class Job(object):
 
 class JidCollector(object):
     def __init__(self):
+        self.log = logging.getLogger(self.__class__.__name__)
+
         self.jids = {}
         self.listeners = []
 
@@ -127,25 +139,34 @@ class JidCollector(object):
         if hasattr(event,'jid'):
             if hasattr(event,'fjid'):
                 self.map_jids[ event.jid ] = event.fjid
-            the_jid = self.map_jids.get(event.jid, event.jid)
+            actual_jid = self.map_jids.get(event.jid, event.jid)
 
-            if the_jid in self.jids:
-                jitem = self.jids[ the_jid ]
+            if actual_jid in self.jids:
+                jitem = self.jids[ actual_jid ]
             else:
-                jitem = Job(the_jid)
-                self.jids[ the_jid ] = jitem
+                jitem = Job(actual_jid)
+                self.jids[ actual_jid ] = jitem
                 actions.add('new-jid')
 
             jitem.append(event)
             actions.add('append-event')
 
-            if isinstance(event,ExpectedReturns):
+            if event.jid in jitem.find_jobs:
+                actions.add('find-job')
+                self.log.debug("considering subsuming jid={0}".format(event.jid))
+                if event.jid in self.jids:
+                    self.log.debug(" subsuming jitem={0}".format(self.jids[event.jid]))
+                    jitem.subsume( self.jids.pop( event.jid ) )
+                else:
+                    self.log.debug(" not subsuming jid={0}".format(event.jid))
+
+            elif isinstance(event,ExpectedReturns):
                 for m in event.minions:
                     if m not in jitem.expected:
                         actions.add('add-expected')
                         jitem.expected.add(m)
 
-            if isinstance(event,Return):
+            elif isinstance(event,Return):
                 if event.id in jitem.expected:
                     if event.id not in jitem.returned:
                         actions.add('add-returned')
@@ -154,6 +175,9 @@ class JidCollector(object):
             if actions:
                 for l in self.listeners:
                     l(jitem, tuple(actions))
+
+        self.log.debug("examine-event event.jid={0} actual_jid={1} tracked_jids={2}".format(
+            repr(event.jid), repr(actual_jid), repr(self.jids.keys()) ))
 
     @property
     def waiting(self):
@@ -389,7 +413,7 @@ class ExpectedReturns(Event):
     def __init__(self, *args, **kwargs):
         super(ExpectedReturns,self).__init__(*args,**kwargs)
         self.minions = self.dat.get('minions', [])
-        self.jid = self.tag.split('/')[-1]
+        self.jid = self.tag.strip()
 
     @property
     def what(self):
