@@ -43,7 +43,9 @@ class Job(object):
 
     @property
     def all_events(self):
-        ev = self.events
+        # shallow copy so we're talking about the same events
+        # but we don't dick up the self.events when we extend()
+        ev = copy.copy(self.events)
         for evl in self.find_jobs.values():
             ev.extend(evl)
         return sorted(ev, key=lambda x: x.evno)
