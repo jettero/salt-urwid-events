@@ -63,7 +63,7 @@ class EventApplication(object):
         self.update_key_hints()
 
         _a   = (self.main_frame,self.pallet,)
-        _kw = { 'unhandled_input': self.keypress }
+        _kw = { 'unhandled_input': self.keypress, 'handle_mouse': False }
 
         self.curses_mode = False
 
