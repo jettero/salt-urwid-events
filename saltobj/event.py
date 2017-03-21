@@ -165,7 +165,7 @@ class JidCollector(object):
                 if event.jid in self.jids:
                     self.log.debug(" subsuming jitem={0}".format(self.jids[event.jid]))
                     jitem.subsume( self.jids.pop( event.jid ) )
-                    actions.add('subsume-jitem-{0}'.event.jid)
+                    actions.add('subsume-jitem-{0}'.format(event.jid))
                 else:
                     self.log.debug(" not subsuming jid={0}".format(event.jid))
 
