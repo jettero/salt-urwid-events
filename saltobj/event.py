@@ -90,7 +90,8 @@ class Job(object):
         self.log.debug( 'find_count() jids in find: {0}'.format(self.find_jobs.keys()) )
         p = 0
         for i in self.find_jobs.values():
-            p += len(i)
+            p += 1
+            # XXX we could say whether the ayt worked and by what percent …
         return p
 
     @property
@@ -108,13 +109,14 @@ class Job(object):
     def columns(self):
         c = [ self.jid ]
         c.append( u'ev={0}'.format( self.event_count ) )
+
+        f = self.find_count
+        c.append( u'ayt={0}'.format(f) if f else '' )
+
         c.append( u'ret={0}/{1}'.format( *self.returned_count ) )
 
         s = self.succeeded_count
         c.append( u'good={0}/{1}'.format(*s) if s else '' )
-
-        f = self.find_count
-        c.append( u'ayt={0}'.format(f) if f else '' )
 
         c.append( self.what )
 
