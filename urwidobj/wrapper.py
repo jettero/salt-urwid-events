@@ -42,6 +42,9 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         if a[0]:
             self._modified()
 
+    def updated(self):
+        self._modified()
+
     def _modified(self):
         minor_maxes = []
 
