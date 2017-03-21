@@ -134,6 +134,9 @@ class EventApplication(object):
         elif key in ('s',):
             self.save_event()
 
+        elif key in ('m',):
+            self.change_main_view() # next
+
         elif key in ('b',):
             self.change_main_view(self.jobs_listbox)
 
@@ -176,8 +179,7 @@ class EventApplication(object):
         body_widget = self.main_frame.body
         key_hints = ['[s]ave-event']
         if len(self.page_stack) == 1:
-            if self.page_stack[0] is self.events_listbox: key_hints.append('jo[b]s')
-            else: key_hints.append('e[v]ents')
+            key_hints.append('[m]ode')
         if hasattr(body_widget,'key_hints'):
             key_hints.append(body_widget.key_hints)
         key_hints = ' '.join(key_hints)
