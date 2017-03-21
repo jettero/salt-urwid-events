@@ -41,6 +41,13 @@ class Job(object):
         self.dtime     = None
         self.find_jobs = {}
 
+    @property
+    def all_events(self):
+        ev = self.events
+        for evl in self.find_jobs.values():
+            ev.extend(evl)
+        return sorted(ev, key=lambda x: x.evno)
+
     def append(self, event):
         if isinstance(event, (FindJobPub,FindJobRet)):
             if event.jid not in self.find_jobs:
@@ -294,7 +301,7 @@ class Event(SaltConfigMixin):
 
     @property
     def evno(self):
-        return self.raw.get('_evno')
+        return self.raw.get('_evno', 999)
 
     @property
     def long(self):
