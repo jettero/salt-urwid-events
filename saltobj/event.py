@@ -41,6 +41,8 @@ class Job(object):
         self.dtime     = None
         self.find_jobs = {}
 
+        self.tracking_list = None
+
     @property
     def all_events(self):
         ev = self.events
@@ -48,7 +50,18 @@ class Job(object):
             ev.extend(evl)
         return sorted(ev, key=lambda x: x.evno)
 
+    def setup_tracking_list(self, obj):
+        import weakref
+        self.tracking_list = weakref.ref(obj)
+
+    def track(self, *x):
+        if self.tracking_list is not None:
+            r = self.tracking_list()
+            if r is not None:
+                r.extend(x)
+
     def append(self, event):
+        self.track(event)
         if isinstance(event, (FindJobPub,FindJobRet)):
             if event.jid not in self.find_jobs:
                 self.find_jobs[ event.jid ] = []
@@ -60,7 +73,9 @@ class Job(object):
         self.events.append(event)
 
     def subsume(self, jitem):
-        self.events.extend([ ev for ev in jitem.events if ev not in self.events ])
+        new_ev = [ ev for ev in jitem.events if ev not in self.events ]
+        self.events.extend(new_ev)
+        self.track(*new_ev)
 
     @property
     def event_count(self):
