@@ -107,14 +107,14 @@ class Job(object):
     @property
     def columns(self):
         c = [ self.jid ]
-        c.append( u'events={0}'.format( self.event_count ) )
-        c.append( u'returned={0}/{1}'.format( *self.returned_count ) )
+        c.append( u'ev={0}'.format( self.event_count ) )
+        c.append( u'ret={0}/{1}'.format( *self.returned_count ) )
 
         s = self.succeeded_count
-        c.append( u'succeeded={0}/{1}'.format(*s) if s else '' )
+        c.append( u'good={0}/{1}'.format(*s) if s else '' )
 
         f = self.find_count
-        c.append( u'AYT={0}'.format(f) if f else '' )
+        c.append( u'ayt={0}'.format(f) if f else '' )
 
         c.append( self.what )
 
