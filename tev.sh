@@ -6,18 +6,17 @@
 #       Also, sometimes the cursor isn't restored at the end
 
 my_dir="$(dirname "$0")"
-u_py="$my_dir/uevents.py"
-u_log="$my_dir/uevents.log"
+cd "$my_dir" || exit
 
 source bash/emergency-kill-urwid.sh
 
-rm -vf "$u_log"
+rm -vf uevents.log
 
-"$u_py" "$@"
+./uevents.py "$@"
 
 newk_urwid
 echo -n $'\x1b'"[?25h"
 
 [ -n "$LINES" ] || LINES=25
 tx=$(( LINES - 2 ))
-tail -n $tx "$u_log"
+tail -n $tx uevents.log
