@@ -39,6 +39,9 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         super(EventListWalker,self).__init__(*a,**kw)
         self.log = logging.getLogger(self.__class__.__name__)
 
+        if a[0]:
+            self._modified()
+
     def _modified(self):
         minor_maxes = []
 
