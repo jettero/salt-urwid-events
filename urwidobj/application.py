@@ -42,9 +42,7 @@ class EventApplication(object):
         self.jobs_listbox    = urwid.ListBox(self.jobs_listwalker)
 
         self.jidcollector.on_change(self.deal_with_job_changes)
-
-        start_page = self.jobs_listbox
-      # start_page = self.events_listbox
+        self.main_views = misc.ListWithPtr([ self.events_listbox, self.jobs_listbox ])
 
         status_line = urwid.Columns([
             urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),
@@ -56,11 +54,11 @@ class EventApplication(object):
             self.log.debug('attempting to address LR-corner issue in tmux terminals')
             status_line = urwid.Padding(status_line, right=1)
 
-        self.main_frame = urwid.Frame( start_page, footer=status_line)
+        self.main_frame = urwid.Frame( self.main_views.cur, footer=status_line)
 
         command_map_extra.add_vim_keys()
 
-        self.page_stack = [start_page]
+        self.page_stack = [self.main_views.cur]
 
         self.update_key_hints()
 
@@ -93,6 +91,21 @@ class EventApplication(object):
 
         self.sevent.pipe_loop(self._write_fd)
 
+    def change_main_view(self, x=None):
+        if isinstance(x,int):
+            self.main_views.pos = x
+            c = self.main_views.cur
+        elif x in self.main_views:
+            self.main_views.pos = self.main_views.index(x)
+            c = self.main_views.cur
+        else:
+            c = self.main_views.next
+
+        self.page_stack[0] = c
+        if len( self.page_stack ) == 1:
+            self.main_frame.body = self.page_stack[0]
+        self.update_key_hints()
+
     def save_event(self):
         gf0 = self.events_listwalker.get_focus()[0]
         evr = gf0.wrapped.raw
@@ -120,6 +133,12 @@ class EventApplication(object):
 
         elif key in ('s',):
             self.save_event()
+
+        elif key in ('b',):
+            self.change_main_view(self.jobs_listbox)
+
+        elif key in ('v',):
+            self.change_main_view(self.events_listbox)
 
         elif key in ('q', 'Q', 'meta q', 'meta Q'):
             if not self.pop_page():
@@ -156,6 +175,9 @@ class EventApplication(object):
     def update_key_hints(self):
         body_widget = self.main_frame.body
         key_hints = ['[s]ave-event']
+        if len(self.page_stack) == 1:
+            if self.page_stack[0] is self.events_listbox: key_hints.append('jo[b]s')
+            else: key_hints.append('e[v]ents')
         if hasattr(body_widget,'key_hints'):
             key_hints.append(body_widget.key_hints)
         key_hints = ' '.join(key_hints)
