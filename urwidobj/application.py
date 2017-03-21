@@ -212,10 +212,17 @@ class EventApplication(object):
     def deal_with_job_changes(self, jitem, actions):
         self.log.debug('deal_with_job_changes({0.jid},{1})'.format(jitem,actions))
 
+        to_remove = []
+
         for jbutt in self.jobs_listwalker:
+            if 'subsume-jitem-{0.jid}'.format(jbutt) in actions:
+                to_remove.append(jbutt)
             if jbutt.wrapped is jitem:
                 jbutt.updated()
                 return
+
+        for jbutt in to_remove:
+            self.jobs_listwalker.remove(jbutt)
 
         self.jobs_listwalker.append( wrapper.JobButton(jitem, self.job_button_click) )
 

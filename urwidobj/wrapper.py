@@ -112,6 +112,10 @@ class JobListWalker(EventListWalker):
 class JobButton(EventButton):
     _req_type = saltobj.event.Job
 
+    @property
+    def jid(self):
+        return self.wrapped.jid
+
     def viewer(self, ev_click_cb):
         elw = EventListWalker([ EventButton(x, ev_click_cb) for x in self.wrapped.all_events ])
         lb = urwid.ListBox( elw )
