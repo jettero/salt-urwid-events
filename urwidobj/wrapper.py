@@ -114,7 +114,6 @@ class JobButton(EventButton):
 
     def viewer(self, ev_click_cb):
         elw = EventListWalker([ EventButton(x, ev_click_cb) for x in self.wrapped.all_events ])
-        self.wrapped.setup_tracking_list(elw, EventButton) # keeps a weak ref for storing new items in
         lb = urwid.ListBox( elw )
         return lb
 
