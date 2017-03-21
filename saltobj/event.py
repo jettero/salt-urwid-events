@@ -65,7 +65,7 @@ class Job(object):
 
     @property
     def event_count(self):
-        return len(self.events)
+        return len(self.all_events)
 
     @property
     def returned_count(self):
