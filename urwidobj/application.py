@@ -179,7 +179,9 @@ class EventApplication(object):
         body_widget = self.main_frame.body
         key_hints = ['[s]ave-event']
         if len(self.page_stack) == 1:
-            key_hints.append('[m]ode')
+            if self.page_stack[0] is self.events_listbox: key_hints.append('[m]ode=ev')
+            elif self.page_stack[0] is self.jobs_listbox: key_hints.append('[m]ode=jb')
+            else:                                         key_hints.append('[m]ode=??')
         if hasattr(body_widget,'key_hints'):
             key_hints.append(body_widget.key_hints)
         key_hints = ' '.join(key_hints)
