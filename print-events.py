@@ -76,4 +76,4 @@ if __name__ == '__main__':
     if not args.no_obfu: # if obfu
         args.preproc = _pre
 
-    saltobj.ForkedSaltPipeWriter(args).main_loop(_print)
+    saltobj.ForkedSaltPipeWriter(args).listen_loop(_print)
