@@ -70,10 +70,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     misc.be_root_you_fool()
+    args.loglevel='debug'
+    args.logfile='print-events.log'
+    misc.setup_file_logger(args)
 
     signal.signal(signal.SIGINT, see_ya)
 
     if not args.no_obfu: # if obfu
         args.preproc = _pre
 
-    saltobj.ForkedSaltPipeWriter(args).listen_loop(_print)
+    saltobj.ForkedSaltPipeWriter(args).listen_loop(_print, skip_ppid=True)

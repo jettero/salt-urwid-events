@@ -190,12 +190,13 @@ class ForkedSaltPipeWriter(SaltConfigMixin):
             self.evno += 1
             return json.dumps(ev, indent=2)
 
-    def listen_loop(self, callback):
+    def listen_loop(self, callback, skip_ppid=False):
         while True:
-            if not os.path.isfile('/proc/{0.ppid}/cmdline'.format(self)):
-                self.log.debug("our ppid={0.ppid} seems to be missing. breaking mainloop now".format(self))
-                exit(0)
-                raise Exception("dead")
+            if not skip_ppid:
+                if not os.path.isfile('/proc/{0.ppid}/cmdline'.format(self)):
+                    self.log.debug("our ppid={0.ppid} seems to be missing. breaking mainloop now".format(self))
+                    exit(0)
+                    raise Exception("dead")
 
             j = self.next()
             if j is None:
