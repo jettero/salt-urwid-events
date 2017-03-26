@@ -330,22 +330,80 @@ class Event(SaltConfigMixin):
 
     @classmethod
     def match(cls, raw):
+        ''' class matching method for pairing up event data with object type
+
+            All classname.matches must be tuples or lists.
+                class ExampleThing(Event):
+                    matches = (
+                        ('tag', 'salt/job/*/ret/*'),
+                        ('fun', 'state.sls'),
+                    )
+
+            match element formats:
+              Find 'key' in event data (slogging through data: { 'data': ... } and other places to find it)
+                ('key', 'string')
+
+              All simple string matches are passed through fnmatch.fnmatch() for globbiness
+                ('key', 'string*')
+
+              For regular expressiong matching, pre-compile the match
+                ('key', re.compile(r'string.*'))
+
+              Key lookup values can also be a tuple of _OR_ items
+                ('key', ('blah1*', 'blah2*', re.compile(r'things')))
+                in which case, either blah1 or blah2 match will do the trick
+
+            top level matches are _AND_ed so all must match or there is no match.
+
+              example.matches = (
+                ('tag', ('blah/*', 'blarg/*')),
+                ('fun', ('state.sls', 'state.highstate')),
+              )
+
+              In this example, in order to match, the tag must be either
+              (blah/something or blarg/something) and the fun must be either
+              (state.sls or state.highstate) or there is no match.
+
+            Classes are matched in order of inheritence depth.
+
+                class Event(...)
+                class SendEvent(Event)
+                class Return(Event)
+                class SpecificReturn(Return)
+                class EventMoreSpecificReturn(SpecificReturn)
+
+                The the matcher would try hardest to match EvenMoreSpecificReturn, trying SpecificReturn next,
+                only checking Event as the very last set of checks.
+
+        '''
         if not hasattr(cls,'matches') or not cls.matches:
             return False
         for m in cls.matches:
+
             _find = raw
-            key, pat = m
             tstr = _find.get(key)
             while tstr is None and 'data' in _find:
                 _find = _find['data']
                 tstr = _find.get(key)
             if tstr is None:
                 return False
-            if isinstance(pat,str):
-                if not fnmatch(tstr, pat):
-                    return False
-            elif not pat.match(tstr):
+
+            key, pats = m
+            if not isinstance(pats,(list,tuple)):
+                pats = (pats,)
+
+            p_matched = False
+            for pat in pats:
+                if isinstance(pat,str) and fnmatch(tstr, pat):
+                    p_matched = True
+                    break
+                elif pat.match(tstr):
+                    p_matched = True
+                    break
+
+            if not p_matched:
                 return False
+
         return True
 
     def has_tag(self, pat):
@@ -572,7 +630,7 @@ class Return(JobEvent):
 
 class StateReturn(Return):
     matches = Return.matches + (
-        ('fun', 'state.sls',),
+        ('fun', ('state.sls','state.highstate','state.apply')),
     )
 
     def __init__(self, *a, **kw):
