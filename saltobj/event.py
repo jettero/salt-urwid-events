@@ -378,7 +378,9 @@ class Event(SaltConfigMixin):
         '''
         if not hasattr(cls,'matches') or not cls.matches:
             return False
-        for m in cls.matches:
+        for key,pats in cls.matches:
+            if not isinstance(pats,(list,tuple)):
+                pats = (pats,)
 
             _find = raw
             tstr = _find.get(key)
@@ -387,10 +389,6 @@ class Event(SaltConfigMixin):
                 tstr = _find.get(key)
             if tstr is None:
                 return False
-
-            key, pats = m
-            if not isinstance(pats,(list,tuple)):
-                pats = (pats,)
 
             p_matched = False
             for pat in pats:
