@@ -44,6 +44,21 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         if a[0]:
             self._modified()
 
+    def append(self, item):
+        super(EventListWalker,self).append(item)
+
+        gf1 = self.get_focus()[1]
+        gfn = self.get_next(gf1)
+
+        try: self.log.debug(' considering focus update — gfn[0].evno={0} =? evw.evno={1}'.format(gfn[0].evno,item.evno))
+        except: self.log.debug('considering focus update')
+
+        if gfn[0] is item:
+            self.log.debug(' update_focus(gfn[1]={0})'.format(gfn[1]))
+            self.set_focus(gfn[1])
+        else:
+            self.log.debug(' leave focus alone')
+
     def updated(self):
         self._modified()
 

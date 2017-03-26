@@ -14,6 +14,7 @@ class EventApplication(object):
     event_no = 0
 
     max_events = 100
+    max_jobs   =  30
 
     def __init__(self, args):
         self.args = args
@@ -37,7 +38,7 @@ class EventApplication(object):
         self.events_listwalker = wrapper.EventListWalker()
         self.events_listbox    = urwid.ListBox(self.events_listwalker)
 
-        self.jidcollector    = saltobj.JidCollector()
+        self.jidcollector    = saltobj.JidCollector(max_jobs=self.max_jobs)
         self.jobs_listwalker = wrapper.JobListWalker()
         self.jobs_listbox    = urwid.ListBox(self.jobs_listwalker)
 
@@ -218,6 +219,10 @@ class EventApplication(object):
         for jbutt in self.jobs_listwalker:
             if 'subsume-jitem-{0.jid}'.format(jbutt) in actions:
                 to_remove.append(jbutt)
+
+            elif 'expire-jitem-{0.jid}'.format(jbutt) in actions:
+                to_remove.append(jbutt)
+
         for jbutt in to_remove:
             self.log.debug('trying to remove {0}->{0.wrapped} from the listwalker'.format(jbutt))
             self.jobs_listwalker.remove(jbutt)
@@ -242,20 +247,14 @@ class EventApplication(object):
 
     def handle_salt_event(self, event):
         self.log.debug('handle_salt_event()')
+
         evw = wrapper.EventButton(event, self.event_button_click)
         self.events_listwalker.append(evw)
+
         while len(self.events_listwalker) > self.max_events:
             self.events_listwalker.pop(0)
-        self.jidcollector.examine_event(event)
-        gf1 = self.events_listwalker.get_focus()[1]
-        gfn = self.events_listwalker.get_next(gf1)
-        try: self.log.debug(' gfn[0].evno={0} is evw.evno={1} ?'.format(gfn[0].evno,evw.evno))
-        except: self.log.debug('considering focus update')
-        if gfn[0] is evw:
-            self.log.debug(' update_focus(gfn[1]={0})'.format(gfn[1]))
-            self.events_listwalker.set_focus(gfn[1])
-        else:
-            self.log.debug(' leave focus alone')
+
+        self.jidcollector.examine_event(event) # continues in deal_with_job_changes, iff applicable
 
     def handle_salt_data(self, data):
         self.log.debug('handle_salt_data(evno={0})'.format(data.get('_evno')))

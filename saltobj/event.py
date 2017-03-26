@@ -127,15 +127,21 @@ class Job(object):
         return self.expected - self.returned
 
 class JidCollector(object):
-    def __init__(self):
+    def __init__(self, max_jobs=50):
         self.log = logging.getLogger(self.__class__.__name__)
 
         self.jids = {}
         self.listeners = []
+        self.max_jobs  = max_jobs
 
         # XXX: if we ever get to the point of cleaning up jids from self.jids,
         # we'll have to remember to clean them from this too
         self.map_jids = {}
+
+    def set_max_jobs(self, mj):
+        oj = self.max_jobs
+        self.max_jobs = mj
+        # XXX: we should immediately reduce the list here if this number goes down
 
     def on_change(self, callback):
         if callback not in self.listeners:
@@ -184,6 +190,15 @@ class JidCollector(object):
                     if event.id not in jitem.returned:
                         actions.add('add-returned')
                         jitem.returned.add(event.id)
+
+            if len(self.jids) > self.max_jobs:
+                to_kill = sorted( self.jids.keys() )[0:( len(self.jids) - self.max_jobs )]
+                for i in to_kill:
+                    del self.jids[i]
+                    actions.add('expire-jitem-{0}'.format(i))
+                m_to_kill = [ k for k in self.map_jids if self.map_jids[k] in to_kill ]
+                for i in m_to_kill:
+                    del self.map_jids[i]
 
             if actions:
                 for l in self.listeners:
