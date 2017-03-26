@@ -392,9 +392,10 @@ class Event(SaltConfigMixin):
 
             p_matched = False
             for pat in pats:
-                if isinstance(pat,str) and fnmatch(tstr, pat):
-                    p_matched = True
-                    break
+                if isinstance(pat,str):
+                    if fnmatch(tstr, pat):
+                        p_matched = True
+                        break
                 elif pat.match(tstr):
                     p_matched = True
                     break
