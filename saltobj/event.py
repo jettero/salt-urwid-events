@@ -640,7 +640,7 @@ class Return(JobEvent):
     @property
     def as_publish(self):
         return u'{target} {fun} {fun_args}'.format(
-            target='<unsolicited>', fun=self.try_attr('fun'),
+            target='<>', fun=self.try_attr('fun'),
             fun_args=self.try_attr('arg', preformat=my_args_format),
         )
 
