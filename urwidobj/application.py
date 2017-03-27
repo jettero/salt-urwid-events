@@ -79,7 +79,7 @@ class EventApplication(object):
 
         self.loop = urwid.MainLoop(*_a, **_kw)
 
-        # OLD0319: this was needed when the event buttons had selectable icons, which 
+        # OLD0319: this was needed when the event buttons had selectable icons, which
         #          always contain a cursor for some reason (why?); this has a counterpart
         #          cruft-comment the same OLD0319 comment tag
         # if not self.curses_mode:
@@ -107,24 +107,58 @@ class EventApplication(object):
             self.main_frame.body = self.page_stack[0]
         self.update_key_hints()
 
+    @property
+    def current_listwalker(self):
+        try: return self.page_stack[-1].body
+        except: pass
+
+    def get_list_focus(self, x=None):
+        if x is not None:
+            try: return self.current_listwalker.get_focus()[x]
+            except: pass
+        else:
+            try: return self.current_listwalker.get_focus()
+            except: pass
+
+    @property
+    def current_list_button(self):
+        try: return self.get_list_focus(0)
+        except: pass
+
+    @property
+    def current_list_widget(self):
+        try: return self.current_list_button.wrapped
+        except: pass
+
     def save_event(self):
-        gf0 = self.events_listwalker.get_focus()[0]
-        evr = gf0.wrapped.raw
-        evn = evr.get('_evno', 999)
-        fname = '/tmp/{0}.event-{1:04d}.json'.format(os.getpid(), evn)
-        with open(fname, 'w') as fh:
-            fh.write( json.dumps(evr, indent=2) )
+        gf0 = self.current_list_widget
+        if gf0 is None:
+            self.log.debug("user requested save_event(), but no current_list_widget found")
+            return
 
-        if 'SUDO_GID' in os.environ and 'SUDO_UID' in os.environ:
-            try:
-                uid = int(os.environ.get('SUDO_UID'))
-                gid = int(os.environ.get('SUDO_GID'))
-                os.chown(fname, uid,gid)
-            except Exception as e:
-                self.log.info('tried to chown({0},{1},{2}) but failed: {3}'.format(
-                    fname,os.envrion.get('SUDO_UID'),os.environ.get('SUDO_GID'),e))
+        def _generate_evr(item):
+            ar = item.all_events if isinstance(item,saltobj.event.Job) else (item,)
+            for i in ar:
+                yield i.raw
 
-        self.status("wrote event to {0}".format(fname))
+        for evr in _generate_evr(gf0):
+            evn = evr.get('_evno')
+            if not evn:
+                continue
+            fname = '/tmp/{0}.event-{1:04d}.json'.format(os.getpid(), evn)
+            with open(fname, 'w') as fh:
+                fh.write( json.dumps(evr, indent=2) )
+
+            if 'SUDO_GID' in os.environ and 'SUDO_UID' in os.environ:
+                try:
+                    uid = int(os.environ.get('SUDO_UID'))
+                    gid = int(os.environ.get('SUDO_GID'))
+                    os.chown(fname, uid,gid)
+                except Exception as e:
+                    self.log.info('tried to chown({0},{1},{2}) but failed: {3}'.format(
+                        fname,os.envrion.get('SUDO_UID'),os.environ.get('SUDO_GID'),e))
+
+            self.status("wrote event to {0}".format(fname))
 
     def keypress(self,key):
         self.log.debug('got keyboard input: {0}'.format(key))
