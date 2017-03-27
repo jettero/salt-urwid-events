@@ -436,7 +436,7 @@ class Event(SaltConfigMixin):
                 break;
         if no_none and ret is None:
             ret = default
-        if preformat and not isinstance(ret, (str,unicode)):
+        if preformat and (not isinstance(ret, (str,unicode)) or ret == NA):
             ret = preformat(ret)
         return ret
 
