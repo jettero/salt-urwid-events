@@ -279,7 +279,7 @@ def classify_event(json_data):
     return Event(raw)
 
 def my_args_format(x):
-    if not x or x is NA:
+    if not x or x is NA or x == NA:
         return ''
     if not isinstance(x, (list,tuple)):
         return json.dumps(x)
@@ -289,6 +289,8 @@ def my_args_format(x):
         if isinstance(i,dict):
             for k,v in i.iteritems():
                 ret.append(u'{0}={1}'.format(k,v))
+        elif not i or i is NA or i == NA:
+            ret.append(u'')
         else:
             ret.append(unicode(i))
     for i,v in enumerate(ret):
