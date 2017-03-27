@@ -465,7 +465,7 @@ class Event(SaltConfigMixin):
         return u' '.join(self.columns).replace('<n/a>','')
 
     def __repr__(self):
-        return '{0.evno} {0.cname}'.format(self)
+        return '{0.evno} {0.__class__.__name__}'.format(self)
     __str__ = __repr__
 
 class Auth(Event):
