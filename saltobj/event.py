@@ -103,6 +103,14 @@ class Job(object):
                 for p in p_ev:
                     self.log.info(" - {0}".format(p.what))
             return p_ev[0].what
+        self.log.info("jid={0} has no Publish".format(self.jid))
+        r_ev = [ x for x in self.events if isinstance(x,Return) ]
+        if r_ev:
+            if len(r_ev) > 1:
+                self.log.debug("jid={0} has more than one Return".format(self.jid))
+                for r in r_ev:
+                    self.log.debug(" - {0}".format(r.what))
+            return r_ev[0].as_publish
         return ''
 
     @property
@@ -204,8 +212,10 @@ class JidCollector(object):
                 for l in self.listeners:
                     l(jitem, tuple(actions))
 
-        self.log.debug("examine-event event.jid={0} actual_jid={1} tracked_jids={2}".format(
-            repr(event.jid), repr(actual_jid), repr(self.jids.keys()) ))
+            self.log.debug("examine-event event.jid={0} actual_jid={1} tracked_jids={2}".format(
+                repr(event.jid), repr(actual_jid), repr(self.jids.keys()) ))
+        else:
+            self.log.debug("examine-event finds no jid here: {0}".format(event))
 
     @property
     def waiting(self):
@@ -626,6 +636,13 @@ class Return(JobEvent):
                 ]
                 return '\n'.join(ret)
         return self.long
+
+    @property
+    def as_publish(self):
+        return u'{target} {fun} {fun_args}'.format(
+            target='<unsolicited>', fun=self.try_attr('fun'),
+            fun_args=self.try_attr('arg', preformat=my_args_format),
+        )
 
 class StateReturn(Return):
     matches = Return.matches + (
