@@ -643,7 +643,7 @@ class Return(JobEvent):
     def as_publish(self):
         return u'{target} {fun} {fun_args}'.format(
             target='<>', fun=self.try_attr('fun'),
-            fun_args=self.try_attr('arg', preformat=my_args_format),
+            fun_args=self.try_attr('fun_args', preformat=my_args_format),
         )
 
 class StateReturn(Return):
