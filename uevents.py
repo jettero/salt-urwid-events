@@ -8,6 +8,9 @@ if __name__=="__main__":
 
     parser = misc.ArgumentParser( prog='uevents' )
 
+    parser.add_argument('-J', '--max-jobs',   type=int, default= 50, help="the max number of tracked jobs in the jobs list")
+    parser.add_argument('-E', '--max-events', type=int, default=100, help="the max number of tracked events in the event list")
+
     parser.add_argument('--id-format', type=misc.Matcher, nargs='*',
         help="use a regex to reformat ids if yours are long or troublesome. "
              "option can be repeated, regex must use capture groups"
