@@ -13,13 +13,13 @@ class EventApplication(object):
     pallet = get_pallet('main')
     event_no = 0
 
-    max_events = 100
-    max_jobs   =  30
-
     def __init__(self, args):
         self.args = args
 
         self._pdat= ''
+
+        self.max_events = args.max_events
+        self.max_jobs   = args.max_jobs  
 
         self.status_txt    = urwid.Text(('status', u"wating for events"))
         self.key_hints_txt = urwid.Text(('status', u''), align='right')
