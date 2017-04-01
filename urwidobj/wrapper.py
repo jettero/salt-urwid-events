@@ -183,7 +183,7 @@ class JobButton(EventButton):
         evc = self.wrapped.columns
         more_columns = [ ('pack',ColumnText(c)) for c in evc[:-1] ]
         more_columns.append(ColumnText(evc[-1]))
-        self.grid_flow = urwid.GridFlow([urwid.Text('<>')], 1, 1, 0, 'left' )
+        self.grid_flow = urwid.GridFlow([urwid.Text('<>')], 1, 2, 0, 'left' )
         self.below = urwid.Columns([ ('fixed', 1, urwid.Text('')), self.grid_flow ])
         self.pile = urwid.Pile([
             urwid.Columns( more_columns, min_width=True, dividechars=1 ),
@@ -205,8 +205,16 @@ class JobButton(EventButton):
                     if lh > m:
                         m = lh
                 self.log.debug('_update_grid_flow() m={}'.format(m))
+
+                hosts = [ (
+                    urwid.Text(
+                        ( ','.join(x[1:]), x[0] )
+                    ),
+                    ('given',len(x[0]))
+                ) for x in details ]
+
                 #self.grid_flow.cell_width = m
-                self.grid_flow.contents[:] = [ (urwid.Text(x[0]),('given',m)) for x in details ]
+                self.grid_flow.contents[:] = hosts
                 if len(self.pile.contents) == 1:
                     self.pile.contents.append( (self.below, ('weight', 1)) )
                     self.log.debug('_update_grid_flow() append pile')
