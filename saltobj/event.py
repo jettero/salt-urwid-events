@@ -99,8 +99,8 @@ class Job(object):
         ret = {}
         for jid in sorted(self.find_jobs):
             for j in self.find_jobs[jid]:
-                if isinstance(j, FindJobPub):
-                    for e in j.expected:
+                if isinstance(j, (FindJobPub,ExpectedReturns)):
+                    for e in j.minions:
                         if e not in ret:
                             ret[e] = 'ayt'
                 elif isinstance(j,FindJobRet):
@@ -109,7 +109,7 @@ class Job(object):
         return ret
 
     @property
-    def find_returns(self):
+    def return_detail(self):
         ret = {}
         for ev in self.events:
             if isinstance(ev,Return):
@@ -121,7 +121,7 @@ class Job(object):
         wait = self.waiting
         hosts = wait.union( self.returned )
         findr = self.find_detail
-        retns = self.find_returns
+        retns = self.return_detail
 
         ret = []
         for host in sorted(hosts):
