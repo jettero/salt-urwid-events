@@ -195,16 +195,17 @@ class JobButton(EventButton):
     def _update_grid_flow(self):
         self.log.debug('_update_grid_flow()')
         if self.grid_flow:
-            hosts = self.wrapped.job_detail
-            self.log.debug('_update_grid_flow() hosts={}'.format(hosts))
-            if hosts:
+            details = self.wrapped.job_detail
+            self.log.debug('_update_grid_flow() details={}'.format(details))
+            if details:
                 m = 0
-                for h in hosts:
-                    if len(h) > m:
-                        m = len(h)
+                for h in details:
+                    lh = len(h[0])
+                    if lh > m:
+                        m = lh
                 self.log.debug('_update_grid_flow() m={}'.format(m))
                 #self.grid_flow.cell_width = m
-                self.grid_flow.contents[:] = [ (urwid.Text(x),('given',m)) for x in hosts ]
+                self.grid_flow.contents[:] = [ (urwid.Text(x[0]),('given',m)) for x in details ]
                 if len(self.pile.contents) == 1:
                     self.pile.contents.append( (self.below, ('weight', 1)) )
                     self.log.debug('_update_grid_flow() append pile')

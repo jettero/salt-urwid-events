@@ -102,16 +102,42 @@ class Job(object):
                 if isinstance(j, FindJobPub):
                     for e in j.expected:
                         if e not in ret:
-                            ret[e] = '?'
+                            ret[e] = 'ayt'
                 elif isinstance(j,FindJobRet):
-                    ret[j.id] = '+'
+                    if e in ret:
+                        del ret[e]
+        return ret
+
+    @property
+    def find_returns(self):
+        ret = {}
+        for ev in self.events:
+            if isinstance(ev,Return):
+                ret[ev.id] = ev
         return ret
 
     @property
     def job_detail(self):
-        w = self.waiting
-        fd = self.find_detail
-        return [ '{0}{1}'.format(h, fd[h]) if h in fd else h for h in w ]
+        wait = self.waiting
+        hosts = wait.union( self.returned )
+        findr = self.find_detail
+        retns = self.find_returns
+
+        ret = []
+        for host in sorted(hosts):
+            statuses = set()
+            if host in wait:
+                statuses.add('waiting')
+            elif host in retns:
+                r = retns[host]
+                if hasattr(r, 'success'):
+                    statuses.add('succeeded' if r.success else 'failed')
+                if hasattr(r, 'changes_count') and r.changes_count > 0:
+                    statuses.add('changes')
+            if host in findr:
+                statuses.add('ayt')
+            ret.append( (host,) + tuple(statuses) )
+        return ret
 
     @property
     def job_desc(self):
