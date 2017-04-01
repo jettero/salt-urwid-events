@@ -183,7 +183,7 @@ class JobButton(EventButton):
         evc = self.wrapped.columns
         more_columns = [ ('pack',ColumnText(c)) for c in evc[:-1] ]
         more_columns.append(ColumnText(evc[-1]))
-        self.grid_flow = urwid.GridFlow([urwid.Text('<>')], 10, 1, 0, 'left' )
+        self.grid_flow = urwid.GridFlow([urwid.Text('<>')], 1, 1, 0, 'left' )
         self.below = urwid.Columns([ ('fixed', 1, urwid.Text('')), self.grid_flow ])
         self.pile = urwid.Pile([
             urwid.Columns( more_columns, min_width=True, dividechars=1 ),
@@ -191,6 +191,7 @@ class JobButton(EventButton):
         columns = [('fixed', 1, self._label), self.pile]
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
         self._invalidate()
+        self._update_grid_flow()
 
     def _update_grid_flow(self):
         self.log.debug('_update_grid_flow()')
