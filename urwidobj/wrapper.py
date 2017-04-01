@@ -128,7 +128,7 @@ class EventButton(urwid.Button):
         return [ w for w in self._w.widget_list if isinstance(w,ColumnText) ]
 
     def set_focused(self):
-        self._label.set_text( u'·' )
+        self._label.set_text( u'*' )
 
     def set_unfocused(self):
         self._label.set_text( u' ' )
@@ -147,6 +147,73 @@ class JobListWalker(EventListWalker):
 
 class JobButton(EventButton):
     _req_type = saltobj.event.Job
+    pile = below = grid_flow = None
+
+    def __init__(self, *a, **kw):
+        super(JobButton,self).__init__(*a, **kw)
+        self._main = self._w
+
+    @property
+    def mm_widget_list(self):
+        wl = []
+        todo = [ self._w ]
+        while todo:
+            top = todo.pop()
+            if hasattr(top,'widget_list'):
+                for w in top.widget_list:
+                    if isinstance(w,ColumnText):
+                        wl.append( w )
+                    else:
+                        todo.append( w )
+        return wl
+
+    def set_unfocused(self):
+        super(JobButton,self).set_unfocused()
+        evc = self.wrapped.columns
+        columns = [('fixed', 1, self._label)] + [ ('pack',ColumnText(c)) for c in evc[:-1] ]
+        columns.append(ColumnText(evc[-1]))
+        self.grid_flow = None
+        self.below = None
+        self.pile = None
+        self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
+        self._invalidate()
+
+    def set_focused(self):
+        super(JobButton,self).set_focused()
+        evc = self.wrapped.columns
+        more_columns = [ ('pack',ColumnText(c)) for c in evc[:-1] ]
+        more_columns.append(ColumnText(evc[-1]))
+        self.grid_flow = urwid.GridFlow([urwid.Text('<>')], 10, 1, 0, 'left' )
+        self.below = urwid.Columns([ ('fixed', 1, urwid.Text('')), self.grid_flow ])
+        self.pile = urwid.Pile([
+            urwid.Columns( more_columns, min_width=True, dividechars=1 ),
+        ])
+        columns = [('fixed', 1, self._label), self.pile]
+        self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
+        self._invalidate()
+
+    def _update_grid_flow(self):
+        self.log.debug('_update_grid_flow()')
+        if self.grid_flow:
+            hosts = self.wrapped.job_detail
+            self.log.debug('_update_grid_flow() hosts={}'.format(hosts))
+            if hosts:
+                m = 0
+                for h in hosts:
+                    if len(h) > m:
+                        m = len(h)
+                self.log.debug('_update_grid_flow() m={}'.format(m))
+                #self.grid_flow.cell_width = m
+                self.grid_flow.contents[:] = [ (urwid.Text(x),('given',m)) for x in hosts ]
+                if len(self.pile.contents) == 1:
+                    self.pile.contents.append( (self.below, ('weight', 1)) )
+                    self.log.debug('_update_grid_flow() append pile')
+                self._invalidate()
+            else:
+                if len(self.pile.contents) > 1:
+                    self.pile.contents.pop()
+                    self._invalidate()
+                    self.log.debug('_update_grid_flow() pop pile')
 
     @property
     def jid(self):
@@ -165,6 +232,8 @@ class JobButton(EventButton):
         for i in range(len(evc)):
             # should we check to see if the text really changed before we change it?
             wl[i].set_text( evc[i] )
+
+        self._update_grid_flow()
 
 class CodeViewer(AnsiableText):
     def __init__(self,event):

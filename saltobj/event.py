@@ -95,6 +95,25 @@ class Job(object):
         return p
 
     @property
+    def find_detail(self):
+        ret = {}
+        for jid in sorted(self.find_jobs):
+            for j in self.find_jobs[jid]:
+                if isinstance(j, FindJobPub):
+                    for e in j.expected:
+                        if e not in ret:
+                            ret[e] = '?'
+                elif isinstance(j,FindJobRet):
+                    ret[j.id] = '+'
+        return ret
+
+    @property
+    def job_detail(self):
+        w = self.waiting
+        fd = self.find_detail
+        return [ '{0}{1}'.format(h, fd[h]) if h in fd else h for h in w ]
+
+    @property
     def job_desc(self):
         p_ev = [ x for x in self.events if isinstance(x,Publish) and not isinstance(x,FindJobPub) ]
         if p_ev:
