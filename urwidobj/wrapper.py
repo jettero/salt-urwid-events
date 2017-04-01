@@ -44,8 +44,20 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         if a[0]:
             self._modified()
 
+    def set_focus(self, *a, **kw):
+        # we try to keep track of focus so the buttons can change
+        # appearence when focused
+        try: self[ self.focus ].set_unfocused()
+        except: pass
+        super(EventListWalker, self).set_focus(*a,**kw)
+        self[ self.focus ].set_focused()
+
     def append(self, item):
         super(EventListWalker,self).append(item)
+
+        if len(self) == 1:
+            # brand new item needs to learn it was focused
+            self[0].set_focused()
 
         gf1 = self.get_focus()[1]
         gfn = self.get_next(gf1)
@@ -117,9 +129,11 @@ class EventButton(urwid.Button):
         elif hasattr(self.wrapped,'jid'):
             self.evno = self.wrapped.jid
 
-    def render(self, size, focus=False):
-        self._label.set_text( u'·' if focus else u' ' )
-        return super(EventButton,self).render(size,focus=focus)
+    def set_focused(self):
+        self._label.set_text( u'·' )
+
+    def set_unfocused(self):
+        self._label.set_text( u' ' )
 
     def viewer(self):
         if not self._viewer:
