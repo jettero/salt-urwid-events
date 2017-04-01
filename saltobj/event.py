@@ -332,6 +332,9 @@ class Event(SaltConfigMixin):
         self.stamp = self.dat.get('_stamp')
         self.dtime = dateutil.parser.parse(self.stamp) if self.stamp else None
 
+    def __reduce__(self):
+        return (self.__class__, (self.raw,))
+
     @property
     def evno(self):
         return self.raw.get('_evno', 999)
