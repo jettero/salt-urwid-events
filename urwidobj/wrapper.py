@@ -79,27 +79,21 @@ class EventListWalker(urwid.SimpleFocusListWalker):
 
         for item in self:
             if isinstance(item, EventButton):
-                c = [ x.pack((self.minor_max,),recompute=True)[0] for x in item._w.widget_list[1:-1] ]
+                c = [ x.pack((self.minor_max,),recompute=True)[0] for x in item.mm_widget_list[:-1] ]
                 for i,l in enumerate(c):
                     if i >= len(minor_maxes):
                         minor_maxes.append(l)
                     elif minor_maxes[i] < l:
                         minor_maxes[i] = l
 
-        did_something = False
         for item in self:
+            wl = item.mm_widget_list
             if isinstance(item, EventButton):
-                wl = item._w.widget_list
                 for i,m in enumerate(minor_maxes):
-                    if wl[i+1].minor_max == 0:
+                    if wl[i].minor_max != m:
                         did_something = True
-                    wl[i+1].minor_max = m
-
-        if did_something:
-            for item in self:
-                if isinstance(item, EventButton):
-                    for w in item._w.widget_list:
-                        w._invalidate()
+                        wl[i].minor_max = m
+                        wl[i]._invalidate()
 
         super(EventListWalker,self)._modified()
 
@@ -129,11 +123,19 @@ class EventButton(urwid.Button):
         elif hasattr(self.wrapped,'jid'):
             self.evno = self.wrapped.jid
 
+    @property
+    def mm_widget_list(self):
+        return [ w for w in self._w.widget_list if isinstance(w,ColumnText) ]
+
     def set_focused(self):
         self._label.set_text( u'·' )
 
     def set_unfocused(self):
         self._label.set_text( u' ' )
+
+    @property
+    def mm_widget_list(self):
+        return self._w.widget_list[1:]
 
     def viewer(self):
         if not self._viewer:
@@ -157,12 +159,12 @@ class JobButton(EventButton):
 
     def updated(self):
         evc = self.wrapped.columns
-        wl  = self._w.widget_list
-        assert( len(evc)+1 == len(wl) )
+        wl  = self.mm_widget_list
+        assert( len(evc) == len(wl) )
 
-        for i,j in [ (i,i+1,) for i in range(len(evc)) ]:
+        for i in range(len(evc)):
             # should we check to see if the text really changed before we change it?
-            wl[j].set_text( evc[i] )
+            wl[i].set_text( evc[i] )
 
 class CodeViewer(AnsiableText):
     def __init__(self,event):
