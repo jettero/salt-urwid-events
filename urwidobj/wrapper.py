@@ -217,7 +217,7 @@ class JobButton(EventButton):
                         }
                         return vm.get(x, 0)
                     statuses = sorted(x[1:], key=_cmap)
-                    return (host, ','.join(statuses))
+                    return (','.join(statuses), host)
 
                 hosts = [( urwid.Text(_frob_host(x)), ('given',len(x[0])) ) for x in details ]
 
