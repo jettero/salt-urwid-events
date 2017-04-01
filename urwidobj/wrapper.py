@@ -206,12 +206,20 @@ class JobButton(EventButton):
                         m = lh
                 self.log.debug('_update_grid_flow() m={}'.format(m))
 
-                hosts = [ (
-                    urwid.Text(
-                        ( ','.join(x[1:]), x[0] )
-                    ),
-                    ('given',len(x[0]))
-                ) for x in details ]
+                def _frob_host(x):
+                    host = x[0]
+                    def _cmap(x):
+                        vm = {
+                            'succeeded': 1,
+                            'failed':    1,
+                            'changes':  40,
+                            'ayt':      50,
+                        }
+                        return vm.get(x, 0)
+                    statuses = sorted(x[1:], key=_cmap)
+                    return (host, ','.join(statuses))
+
+                hosts = [( urwid.Text(_frob_host(x)), ('given',len(x[0])) ) for x in details ]
 
                 #self.grid_flow.cell_width = m
                 self.grid_flow.contents[:] = hosts

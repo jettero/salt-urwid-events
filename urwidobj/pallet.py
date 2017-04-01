@@ -3,8 +3,8 @@ from misc.xlateansi import ANSI_PALLET16
 
 _PALLET = {
     'main': {
-        'status':   (     'yellow', 'dark blue'),
-        'selected': ( 'light blue',   'default'),
+        'status':   ( 'yellow',     'dark blue'),
+        'selected': ( 'light blue', 'default'  ),
 
         'ayt':       ( 'yellow',     'default' ),
         'failed':    ( 'dark red',   'default' ),
