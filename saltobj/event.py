@@ -95,14 +95,14 @@ class Job(object):
         return p
 
     @property
-    def what(self):
+    def job_desc(self):
         p_ev = [ x for x in self.events if isinstance(x,Publish) and not isinstance(x,FindJobPub) ]
         if p_ev:
             if len(p_ev) > 1:
                 self.log.info("jid={0} has more than one Publish".format(self.jid))
                 for p in p_ev:
                     self.log.info(" - {0}".format(p.what))
-            return p_ev[0].what
+            return p_ev[0].job_desc
         self.log.info("jid={0} has no Publish".format(self.jid))
         r_ev = [ x for x in self.events if isinstance(x,Return) ]
         if r_ev:
@@ -110,8 +110,8 @@ class Job(object):
                 self.log.debug("jid={0} has more than one Return".format(self.jid))
                 for r in r_ev:
                     self.log.debug(" - {0}".format(r.what))
-            return r_ev[0].as_publish
-        return ''
+            return r_ev[0].job_desc
+        return ('','','')
 
     @property
     def columns(self):
@@ -126,7 +126,7 @@ class Job(object):
         s = self.succeeded_count
         c.append( u'good={0}/{1}'.format(*s) if s else '' )
 
-        c.append( self.what )
+        c.extend( self.job_desc )
 
         return c
 
@@ -540,7 +540,7 @@ class Publish(JobEvent):
             self.who = 'local'
 
     @property
-    def what(self):
+    def job_desc(self):
         tgt = self.try_attr('tgt')
         tgt_type = self.try_attr('tgt_type')
 
@@ -578,9 +578,17 @@ class Publish(JobEvent):
         else:
             tv = '<{0}>@{1}'.format( self.try_attr('tgt_type'), self.try_attr('tgt') )
 
+        return (
+            tv,
+            self.try_attr('fun'),
+            self.try_attr('arg', preformat=my_args_format),
+        )
+
+    @property
+    def what(self):
+        jd = self.job_desc
         return u'{target} {fun} {fun_args}'.format(
-            target=tv, fun=self.try_attr('fun'),
-            fun_args=self.try_attr('arg', preformat=my_args_format),
+            target=jd[0], fun=jd[1], fun_args=jd[2]
         )
 
 class Return(JobEvent):
@@ -640,10 +648,11 @@ class Return(JobEvent):
         return self.long
 
     @property
-    def as_publish(self):
-        return u'{target} {fun} {fun_args}'.format(
-            target='<>', fun=self.try_attr('fun'),
-            fun_args=self.try_attr('fun_args', preformat=my_args_format),
+    def job_desc(self):
+        return (
+            '<>',
+            self.try_attr('fun'),
+            self.try_attr('fun_args', preformat=my_args_format),
         )
 
 class StateReturn(Return):
