@@ -33,7 +33,7 @@ class ColumnText(urwid.Text):
         return super(ColumnText,self).pack(*a,**kw)
 
 class EventListWalker(urwid.SimpleFocusListWalker):
-    minor_max = 50
+    minor_max = 30
 
     def __init__(self,*a,**kw):
         if not a:
