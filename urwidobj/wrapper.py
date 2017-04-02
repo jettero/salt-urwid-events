@@ -44,13 +44,25 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         if a[0]:
             self._modified()
 
-    def set_focus(self, *a, **kw):
-        # we try to keep track of focus so the buttons can change
-        # appearence when focused
-        try: self[ self.focus ].set_unfocused()
-        except: pass
-        super(EventListWalker, self).set_focus(*a,**kw)
-        self[ self.focus ].set_focused()
+    def _my_set_focus(self, i):
+        ls = len(self)
+        if ls < 1:
+            return
+        j = i % ls
+        if i == j:
+            self.log.debug("_my_set_focus({})".format(i))
+        else:
+            self.log.debug("_my_set_focus({}%{}={})".format(i,ls,j))
+        f = self.focus
+        if j != f:
+            self[f].set_unfocused()
+        self._set_focus(j)
+        self[j].set_focused()
+
+    def _my_get_focus(self):
+        return self._get_focus()
+
+    focus = property(_my_get_focus, _my_set_focus)
 
     def append(self, item):
         super(EventListWalker,self).append(item)
@@ -59,15 +71,14 @@ class EventListWalker(urwid.SimpleFocusListWalker):
             # brand new item needs to learn it was focused
             self[0].set_focused()
 
-        gf1 = self.get_focus()[1]
-        gfn = self.get_next(gf1)
+        f = self.focus
+        g = (f + 1) % len(self)
+        self.log.debug("appended item.evno={}; current_focus={} next_focus={}".format(item.evno,f,g))
+        self.log.debug("  self[{}].evno={}".format(g,self[g].evno))
 
-        try: self.log.debug(' considering focus update — gfn[0].evno={0} =? evw.evno={1}'.format(gfn[0].evno,item.evno))
-        except: self.log.debug('considering focus update')
-
-        if gfn[0] is item:
-            self.log.debug(' update_focus(gfn[1]={0})'.format(gfn[1]))
-            self.set_focus(gfn[1])
+        if self[g] is item:
+            self.log.debug(' update_focus({0})'.format(g))
+            self.focus = g
         else:
             self.log.debug(' leave focus alone')
 
@@ -168,6 +179,7 @@ class JobButton(EventButton):
         return wl
 
     def set_unfocused(self):
+        self.log.debug("set_unfocused() jid={}".format(self.wrapped.jid if hasattr(self.wrapped,'jid') else '??'))
         super(JobButton,self).set_unfocused()
         evc = self.wrapped.columns
         columns = [('fixed', 1, self._label)] + [ ('pack',ColumnText(c)) for c in evc[:-1] ]
@@ -179,6 +191,7 @@ class JobButton(EventButton):
         self._invalidate()
 
     def set_focused(self):
+        self.log.debug("set_focused() jid={}".format(self.wrapped.jid if hasattr(self.wrapped,'jid') else '??'))
         super(JobButton,self).set_focused()
         evc = self.wrapped.columns
         more_columns = [ ('pack',ColumnText(c)) for c in evc[:-1] ]
