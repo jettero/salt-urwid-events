@@ -104,8 +104,8 @@ class Job(object):
                         if e not in ret:
                             ret[e] = 'ayt'
                 elif isinstance(j,FindJobRet):
-                    if e in ret:
-                        del ret[e]
+                    if j.id in ret:
+                        del ret[j.id]
         return ret
 
     @property
