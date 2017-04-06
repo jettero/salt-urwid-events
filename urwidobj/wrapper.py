@@ -97,6 +97,7 @@ class EventListWalker(urwid.SimpleFocusListWalker):
                     elif minor_maxes[i] < l:
                         minor_maxes[i] = l
 
+        did_something = False
         for item in self:
             wl = item.mm_widget_list
             if isinstance(item, EventButton):
@@ -105,6 +106,11 @@ class EventListWalker(urwid.SimpleFocusListWalker):
                         did_something = True
                         wl[i].minor_max = m
                         wl[i]._invalidate()
+                        did_something = True
+
+        if did_something:
+            for item in self:
+                item._invalidate()
 
         super(EventListWalker,self)._modified()
 
