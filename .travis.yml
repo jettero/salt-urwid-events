@@ -5,3 +5,6 @@ os:       linux
 
 python:
   - '2.7'
+
+script:
+  - PYTHONPATH=$(pwd) pytest
