@@ -236,6 +236,7 @@ class JobButton(EventButton):
                         }
                         return vm.get(x, 0)
                     statuses = sorted(x[1:], key=_cmap)
+                    self.log.debug('_update_grid_flow()._frob_host host={} statuses={}'.format(host,statuses))
                     return (','.join(statuses), host)
 
                 hosts = [( urwid.Text(_frob_host(x)), ('given',len(x[0])) ) for x in details ]
