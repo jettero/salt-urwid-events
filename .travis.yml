@@ -1,0 +1,4 @@
+language: python
+group:    stable
+dist:     trusty
+os:       linux
