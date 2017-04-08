@@ -1,3 +1,4 @@
 urwid
 salt
 Pygments
+python-dateutil
