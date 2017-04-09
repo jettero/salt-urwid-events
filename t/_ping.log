@@ -1,0 +1,152 @@
+{
+  "tag": "20170409085858677708", 
+  "data": {
+    "_stamp": "2017-04-09T12:58:58.677996", 
+    "minions": [
+      "host1.dom1", 
+      "host2.dom2", 
+      "host3.dom3", 
+      "host4.dom2", 
+      "host5.dom1", 
+      "host6.dom3", 
+      "host7.dom1"
+    ]
+  }, 
+  "_evno": 0
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/new", 
+  "data": {
+    "tgt_type": "glob", 
+    "jid": "20170409085858677708", 
+    "tgt": "*", 
+    "_stamp": "2017-04-09T12:58:58.680484", 
+    "user": "sudo_jettero", 
+    "arg": [], 
+    "fun": "test.ping", 
+    "minions": [
+      "host1.dom1", 
+      "host2.dom2", 
+      "host3.dom3", 
+      "host4.dom2", 
+      "host5.dom1", 
+      "host6.dom3", 
+      "host7.dom1"
+    ]
+  }, 
+  "_evno": 1
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/ret/host7.dom1", 
+  "data": {
+    "fun_args": [], 
+    "jid": "20170409085858677708", 
+    "return": true, 
+    "retcode": 0, 
+    "success": true, 
+    "cmd": "_return", 
+    "_stamp": "2017-04-09T12:58:58.783007", 
+    "fun": "test.ping", 
+    "id": "host7.dom1"
+  }, 
+  "_evno": 2
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/ret/host5.dom1", 
+  "data": {
+    "fun_args": [], 
+    "jid": "20170409085858677708", 
+    "return": true, 
+    "retcode": 0, 
+    "success": true, 
+    "cmd": "_return", 
+    "_stamp": "2017-04-09T12:58:58.834668", 
+    "fun": "test.ping", 
+    "id": "host5.dom1"
+  }, 
+  "_evno": 3
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/ret/host3.dom3", 
+  "data": {
+    "fun_args": [], 
+    "jid": "20170409085858677708", 
+    "return": true, 
+    "retcode": 0, 
+    "success": true, 
+    "cmd": "_return", 
+    "_stamp": "2017-04-09T12:58:58.882764", 
+    "fun": "test.ping", 
+    "id": "host3.dom3"
+  }, 
+  "_evno": 4
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/ret/host1.dom1", 
+  "data": {
+    "fun_args": [], 
+    "jid": "20170409085858677708", 
+    "return": true, 
+    "retcode": 0, 
+    "success": true, 
+    "cmd": "_return", 
+    "_stamp": "2017-04-09T12:58:58.896017", 
+    "fun": "test.ping", 
+    "id": "host1.dom1"
+  }, 
+  "_evno": 5
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/ret/host4.dom2", 
+  "data": {
+    "fun_args": [], 
+    "jid": "20170409085858677708", 
+    "return": true, 
+    "retcode": 0, 
+    "success": true, 
+    "cmd": "_return", 
+    "_stamp": "2017-04-09T12:58:59.005972", 
+    "fun": "test.ping", 
+    "id": "host4.dom2"
+  }, 
+  "_evno": 6
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/ret/host2.dom2", 
+  "data": {
+    "fun_args": [], 
+    "jid": "20170409085858677708", 
+    "return": true, 
+    "retcode": 0, 
+    "success": true, 
+    "cmd": "_return", 
+    "_stamp": "2017-04-09T12:58:59.050830", 
+    "fun": "test.ping", 
+    "id": "host2.dom2"
+  }, 
+  "_evno": 7
+} 
+
+{
+  "tag": "salt/job/20170409085858677708/ret/host6.dom3", 
+  "data": {
+    "fun_args": [], 
+    "jid": "20170409085858677708", 
+    "return": true, 
+    "retcode": 0, 
+    "success": true, 
+    "cmd": "_return", 
+    "_stamp": "2017-04-09T12:58:59.216228", 
+    "fun": "test.ping", 
+    "id": "host6.dom3"
+  }, 
+  "_evno": 8
+} 
+
