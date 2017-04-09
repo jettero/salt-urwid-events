@@ -7,5 +7,4 @@ python:
   - '2.7'
 
 script:
-  - export PYTHONPATH="$(pwd):$PYTHONPATH"
-  - pytest
+  - ./run-pytest.sh
