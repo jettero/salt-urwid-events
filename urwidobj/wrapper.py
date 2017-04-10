@@ -82,6 +82,8 @@ class EventListWalker(urwid.SimpleFocusListWalker):
         else:
             self.log.debug(' leave focus alone')
 
+        self._modified()
+
     def updated(self):
         self._modified()
 
