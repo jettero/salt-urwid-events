@@ -6,10 +6,12 @@ _PALLET = {
         'status':   ( 'yellow',     'dark blue'),
         'selected': ( 'light blue', 'default'  ),
 
-        'ayt':     ( 'yellow',     'default' ),
-        'rc_bad':  ( 'dark red',   'default' ),
-        'rc_ok':   ( 'dark green', 'default' ),
-        'changes': ( 'bold',       'default' ),
+        'ayt':             ( 'yellow',      'default' ),
+        'rc_bad':          ( 'dark red',    'default' ),
+        'rc_ok':           ( 'dark green',  'default' ),
+        'rc_bad-changes':  ( 'light red',   'default' ),
+        'rc_ok-changes':   ( 'light green', 'default' ),
+        'changes':         ( 'dark cyan',   'default' ),
     }
 }
 

@@ -229,17 +229,19 @@ class JobButton(EventButton):
 
                 def _frob_host(x):
                     host = x[0]
-                    def _cmap(x):
-                        vm = {
-                            'succeeded': 1,
-                            'failed':    1,
-                            'changes':  40,
-                            'ayt':      50,
-                        }
-                        return vm.get(x, 0)
-                    statuses = sorted(x[1:], key=_cmap)
-                    self.log.debug('_update_grid_flow()._frob_host host={} statuses={}'.format(host,statuses))
-                    return (','.join(statuses), host)
+                    statuses = x[1:]
+                    if 'ayt' in statuses:
+                        return ('ayt', host)
+                    p = []
+                    if 'rc_ok' in statuses:
+                        p.append('rc_ok')
+                    elif 'rc_bad' in statuses:
+                        p.append('rc_bad')
+                    if 'changes' in statuses:
+                        p.append('changes')
+                    if not p:
+                        return host
+                    return ('-'.join(p), host)
 
                 hosts = [( urwid.Text(_frob_host(x)), ('given',len(x[0])) ) for x in details ]
 
