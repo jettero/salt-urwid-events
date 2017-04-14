@@ -74,14 +74,13 @@ class Job(object):
         return (len(self.returned),len(self.expected))
 
     @property
-    def succeeded_count(self):
+    def rc_count(self):
         c = t = 0
         for event in self.events:
-            if hasattr(event,'success'):
-                if event.success is not NA:
-                    t += 1
-                    if event.success:
-                        c += 1
+            if hasattr(event,'rc_ok'):
+                t += 1
+                if event.rc_ok:
+                    c += 1
         if t:
             return (c,t)
 
@@ -130,8 +129,8 @@ class Job(object):
                 statuses.add('waiting')
             elif host in retns:
                 r = retns[host]
-                if hasattr(r, 'success'):
-                    statuses.add('succeeded' if r.success else 'failed')
+                if hasattr(r, 'rc_ok'):
+                    statuses.add('rc_ok' if r.rc_ok else 'rc_bad')
                 if hasattr(r, 'changes_count') and r.changes_count > 0:
                     statuses.add('changes')
             if host in findr:
@@ -168,7 +167,7 @@ class Job(object):
 
         c.append( u'ret={0}/{1}'.format( *self.returned_count ) )
 
-        s = self.succeeded_count
+        s = self.rc_count
         c.append( u'good={0}/{1}'.format(*s) if s else ' ' )
 
         c.extend( self.job_desc )
@@ -649,6 +648,13 @@ class Return(JobEvent):
         self.retcode = self.dat.get('retcode', 0)
         self.returnd = self.dat.get('return', 0)
         self.id      = self.dat.get('id', NA)
+
+        self.rc_ok = False
+        try:
+            if int( self.retcode ) == 0:
+                self.rc_ok = True
+        except:
+            pass
 
     def _oo(self,o,v=None):
         if o not in self.salt_opts:
