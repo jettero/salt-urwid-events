@@ -41,3 +41,9 @@ def test_babysit_list():
     mfl = MyFocusList([1,2,3,4], babysit_list=sflw)
 
     assert len(sflw) == 1 and sflw[0] == mfl.cur
+    item = mfl.next
+    assert len(sflw) == 1 and sflw[0] == item
+    item = mfl.next
+    assert len(sflw) == 1 and sflw[0] == item
+    item = mfl.next
+    assert len(sflw) == 1 and sflw[0] == item

@@ -25,12 +25,14 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
             if set_focus == -1:
                 self.auto_follow = True
             self.focus = set_focus
-        self._modified()
+        self._sync_babysit_list()
 
-    def _modified(self):
+    def _sync_babysit_list(self):
+        item = self.cur
         if self.babysit_list is not None:
-            if self:
-                self.babysit_list[:] = [ self.cur ]
+            if item is not None:
+                if len(self.babysit_list) != 1 or self.babysit_list[0] is not item:
+                    self.babysit_list[:] = [ item ]
             else:
                 self.babysit_list[:] = []
 
@@ -39,12 +41,14 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
         if self.auto_follow and new_items:
             if focus == len(self)-1:
                 focus += len(new_items)
+        self._sync_babysit_list()
         return focus
 
     def _set_focus(self, index):
         if not self: return
         index = index % len(self)
         super(MyFocusList,self)._set_focus(index)
+        self._sync_babysit_list()
 
     def _get_focus(self):
         return super(MyFocusList,self)._get_focus()
