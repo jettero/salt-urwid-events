@@ -33,8 +33,9 @@ class ColumnText(urwid.Text):
             return r
         return super(ColumnText,self).pack(*a,**kw)
 
-class EventListWalker(urwid.SimpleFocusListWalker):
+class EventListWalker(MyFocusList,urwid.SimpleFocusListWalker):
     minor_max = 30
+    auto_follow = True
 
     def __init__(self,*a,**kw):
         if not a:
@@ -44,49 +45,6 @@ class EventListWalker(urwid.SimpleFocusListWalker):
 
         if a[0]:
             self._modified()
-
-    def _my_set_focus(self, i):
-        ls = len(self)
-        if ls < 1:
-            return
-        j = i % ls
-        if i == j:
-            self.log.debug("_my_set_focus({})".format(i))
-        else:
-            self.log.debug("_my_set_focus({}%{}={})".format(i,ls,j))
-        f = self.focus
-        if j != f:
-            self[f].set_unfocused()
-        self._set_focus(j)
-        self[j].set_focused()
-
-    def _my_get_focus(self):
-        return self._get_focus()
-
-    focus = property(_my_get_focus, _my_set_focus)
-
-    def append(self, item):
-        super(EventListWalker,self).append(item)
-
-        if len(self) == 1:
-            # brand new item needs to learn it was focused
-            self[0].set_focused()
-
-        f = self.focus
-        g = (f + 1) % len(self)
-        self.log.debug("appended item.evno={}; current_focus={} next_focus={}".format(item.evno,f,g))
-        self.log.debug("  self[{}].evno={}".format(g,self[g].evno))
-
-        if self[g] is item:
-            self.log.debug(' update_focus({0})'.format(g))
-            self.focus = g
-        else:
-            self.log.debug(' leave focus alone')
-
-        self._modified()
-
-    def updated(self):
-        self._modified()
 
     def _modified(self):
         minor_maxes = []
@@ -163,7 +121,9 @@ class EventButton(urwid.Button):
         return self._viewer
 
 class JobListWalker(EventListWalker):
-    pass
+    def updated(self):
+        for item in self:
+            item.updated()
 
 class JobButton(EventButton):
     _req_type = saltobj.event.Job
