@@ -12,6 +12,8 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
         set_focus = None
         if 'babysit' in kw:
             self.babysit_list = kw.pop('babysit')
+        if 'babysit_list' in kw:
+            self.babysit_list = kw.pop('babysit_list')
         if 'auto_follow' in kw:
             self.auto_follow = bool(kw.pop('auto_follow'))
         if 'follow' in kw:
