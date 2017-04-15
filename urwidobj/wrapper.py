@@ -49,6 +49,7 @@ class EventListWalker(MyFocusList,urwid.SimpleFocusListWalker):
             self._modified()
 
     def _modified(self):
+        self.log.debug("_modified()")
         minor_maxes = []
 
         for item in self:
@@ -124,12 +125,12 @@ class EventButton(urwid.Button):
 
 class JobListWalker(EventListWalker):
     def _focus_changed(self, *a,**kw):
+        self.log.debug("_focus_changed()")
         super(JobListWalker,self)._focus_changed(*a,**kw)
         self.updated()
 
     def updated(self):
-        for item in self:
-            item.updated()
+        self.log.debug("updated()")
         self._modified()
 
 class JobButton(EventButton):
@@ -179,7 +180,6 @@ class JobButton(EventButton):
         ])
         columns = [('fixed', 1, self._label), self.pile]
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
-        self._update_grid_flow()
         self.updated()
 
     def _update_grid_flow(self):
