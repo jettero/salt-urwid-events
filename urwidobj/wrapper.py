@@ -125,6 +125,10 @@ class EventButton(urwid.Button):
 
 class JobListWalker(EventListWalker):
     def _focus_changed(self, *a,**kw):
+        # NOTE: the misc.mfl.MyFocusList must issue set_focused/set_unfocused
+        # before calling _focus_changed or the below would come before the
+        # buttons reconfigure themselves and would therefore be too late to
+        # redraw the column widths correctly
         self.log.debug("_focus_changed()")
         super(JobListWalker,self)._focus_changed(*a,**kw)
         self.updated()
