@@ -344,7 +344,7 @@ class EventViewer(urwid.ListBox):
         if key and self.key_hints: # if key is true, super() didn't handle the keypress
             if key in ('m',):
                 self.outputs.next
-                self.log.debug('swapping mode {0} {1}'.format(self.outputs.pos,self.outputs))
+                self.log.debug('swapping mode {0}'.format(self.outputs))
                 return # we handled the keystroke
 
             else:

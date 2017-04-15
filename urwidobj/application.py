@@ -94,10 +94,10 @@ class EventApplication(object):
 
     def change_main_view(self, x=None):
         if isinstance(x,int):
-            self.main_views.pos = x
+            self.main_views.focus = x
             c = self.main_views.cur
         elif x in self.main_views:
-            self.main_views.pos = self.main_views.index(x)
+            self.main_views.focus = self.main_views.index(x)
             c = self.main_views.cur
         else:
             c = self.main_views.next
