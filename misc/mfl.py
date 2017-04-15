@@ -9,9 +9,7 @@ class MyFocusListMixin(object):
     def _set_focus(self, index):
         if not self: return
         index = index % len(self)
-        super(MyFocusListMixin, self)._set_focus(index)
-
-    focus = property(pMFL._get_focus, _set_focus)
+        pMFL._set_focus(self, index)
 
     @property
     def cur(self):
@@ -30,7 +28,7 @@ class MyFocusListMixin(object):
         return self.cur
 
 class MyFocusList(urwid.monitored_list.MonitoredFocusList, MyFocusListMixin):
-    pass
+    focus = property(pMFL._get_focus, MyFocusListMixin._set_focus)
 
 class MySimpleFocusListWalker(urwid.listbox.SimpleFocusListWalker, MyFocusListMixin):
-    pass
+    focus = property(pMFL._get_focus, MyFocusListMixin._set_focus)
