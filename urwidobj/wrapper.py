@@ -6,7 +6,7 @@ import command_map_extra
 import logging
 
 from misc.xlateansi import xlate_ansi, format_code
-from misc import MyFocusList
+from misc import MyFocusList, MySimpleFocusListWalker
 
 class AnsiableText(urwid.Text):
     def __init__(self, *a,**kw):
@@ -320,9 +320,7 @@ class EventViewer(urwid.ListBox):
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.outputs = misc.MySimpleFocusListWalker([
-            CodeViewer(event),
-        ])
+        self.outputs = MySimpleFocusListWalker([ CodeViewer(event) ])
         if hasattr(event, 'outputter'):
             self.outputs.append( OutputterViewer(event) )
         super(EventViewer, self).__init__(self.outputs)
