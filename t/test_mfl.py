@@ -3,9 +3,9 @@ from misc.mfl import MyFocusList
 
 def test_mfl():
     lwp1 = MyFocusList([1,2,3,4])
-    assert lwp1.pos == 0
-    lwp1.pos = -1
-    assert lwp1.pos == len(lwp1)-1
+    assert lwp1.focus == 0
+    lwp1.focus = -1
+    assert lwp1.focus == len(lwp1)-1
     assert lwp1.cur == 4
     assert lwp1.next == 1
     assert lwp1.next == 2
