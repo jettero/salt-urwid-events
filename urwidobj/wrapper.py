@@ -122,6 +122,8 @@ class EventButton(urwid.Button):
 
 class JobListWalker(EventListWalker):
     def updated(self):
+        for item in self:
+            item.updated()
         self._modified()
 
 class JobButton(EventButton):
