@@ -43,7 +43,7 @@ class EventApplication(object):
         self.jobs_listbox    = urwid.ListBox(self.jobs_listwalker)
 
         self.jidcollector.on_change(self.deal_with_job_changes)
-        self.main_views = misc.ListWithPtr([ self.events_listbox, self.jobs_listbox ])
+        self.main_views = misc.MyFocusList([ self.events_listbox, self.jobs_listbox ])
 
         status_line = urwid.Columns([
             urwid.AttrMap(urwid.Padding(self.status_txt, left=1),     'status'),

@@ -4,7 +4,7 @@ import urwid.monitored_list
 
 # /usr/lib/python2.7/site-packages/urwid/monitored_list.py
 
-class ListWithPtr(urwid.monitored_list.MonitoredFocusList):
+class MyFocusList(urwid.monitored_list.MonitoredFocusList):
     @property
     def cur(self):
         if not self:

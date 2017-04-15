@@ -2,7 +2,7 @@ import os
 
 from argparser import ArgumentParser
 from xlateansi import xlate_ansi, format_code
-from list_ptr  import ListWithPtr
+from list_ptr  import MyFocusList
 from matcher   import Matcher
 
 LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s[%(process)d]: %(message)s"
