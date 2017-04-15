@@ -1,7 +1,5 @@
 # encoding: utf-8
 
-import weakref
-
 import saltobj.event
 import urwid
 import command_map_extra
