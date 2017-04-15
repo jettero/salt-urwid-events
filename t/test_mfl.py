@@ -1,8 +1,8 @@
 
-from misc.mfl import MyFocusList
+from misc.mfl import MyFocusList, MySimpleFocusListWalker
 
-def test_mfl():
-    lwp1 = MyFocusList([1,2,3,4])
+def test_mfl(test_class=MyFocusList):
+    lwp1 = test_class([1,2,3,4])
     assert lwp1.focus == 0
     lwp1.focus = -1
     assert lwp1.focus == len(lwp1)-1
@@ -20,3 +20,7 @@ def test_mfl():
     assert lwp1.cur == 4
     assert lwp1.cur == 4
     assert lwp1.cur == 4
+
+def test_msflw():
+    test_mfl( MySimpleFocusListWalker )
+
