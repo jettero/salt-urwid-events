@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+import weakref
+
 import saltobj.event
 import urwid
 import command_map_extra
@@ -121,6 +123,10 @@ class EventButton(urwid.Button):
         return self._viewer
 
 class JobListWalker(EventListWalker):
+    def _focus_changed(self, *a,**kw):
+        super(JobListWalker,self)._focus_changed(*a,**kw)
+        self.updated()
+
     def updated(self):
         for item in self:
             item.updated()
@@ -158,7 +164,7 @@ class JobButton(EventButton):
         self.below = None
         self.pile = None
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
-        self._invalidate()
+        self.updated()
 
     def set_focused(self):
         self.log.debug("set_focused() jid={}".format(self.wrapped.jid if hasattr(self.wrapped,'jid') else '??'))
@@ -173,8 +179,8 @@ class JobButton(EventButton):
         ])
         columns = [('fixed', 1, self._label), self.pile]
         self._w = urwid.Columns( columns, min_width=True, dividechars=1 )
-        self._invalidate()
         self._update_grid_flow()
+        self.updated()
 
     def _update_grid_flow(self):
         self.log.debug('_update_grid_flow()')
