@@ -1,10 +1,11 @@
 # coding: utf-8
 
 import urwid.monitored_list
+import urwid.listbox
 
 # /usr/lib/python2.7/site-packages/urwid/monitored_list.py
 
-class MyFocusList(urwid.monitored_list.MonitoredFocusList):
+class MyFocusListMixin(object):
     @property
     def cur(self):
         if not self:
@@ -33,5 +34,8 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
         if not self: return
         self._focus = v % len(self)
 
-class AutoTailFocusList(MyFocusList):
+class MyFocusList(urwid.monitored_list.MonitoredFocusList, MyFocusListMixin):
+    pass
+
+class MySimpleFocusListWalker(urwid.listbox.SimpleFocusListWalker, MyFocusListMixin):
     pass

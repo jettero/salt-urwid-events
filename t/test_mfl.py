@@ -1,5 +1,5 @@
 
-from misc.list_ptr import MyFocusList
+from misc.mfl import MyFocusList
 
 def test_mfl():
     lwp1 = MyFocusList([1,2,3,4])
