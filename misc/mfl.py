@@ -57,13 +57,16 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
 
     def _set_focus(self, index):
         if not self: return
+
         old = self.focus
         index = index % len(self)
-        super(MyFocusList,self)._set_focus(index)
-        self._sync_babysit_list()
+
         if old != index:
             self._try_method( old, 'set_unfocused' )
         self._try_method( index,   'set_focused' )
+
+        super(MyFocusList,self)._set_focus(index)
+        self._sync_babysit_list()
 
     def _get_focus(self):
         return super(MyFocusList,self)._get_focus()
