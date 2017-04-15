@@ -1,5 +1,5 @@
 
-from misc.mfl import MyFocusList, MySimpleFocusListWalker
+from misc import MyFocusList
 
 def test_mfl(test_class=MyFocusList):
     l = test_class([1,2,3,4])
@@ -20,9 +20,6 @@ def test_mfl(test_class=MyFocusList):
     assert l.cur == 4
     assert l.cur == 4
     assert l.cur == 4
-
-def test_msflw():
-    test_mfl( MySimpleFocusListWalker )
 
 def test_auto_follow(test_class=MyFocusList):
     l = test_class([1,2,3,4])

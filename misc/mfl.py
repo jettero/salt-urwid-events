@@ -6,9 +6,12 @@ import urwid.monitored_list
 
 class MyFocusList(urwid.monitored_list.MonitoredFocusList):
     auto_follow = False
+    babysit_list = None
 
     def __init__(self, *a, **kw):
         set_focus = None
+        if 'babysit' in kw:
+            self.babysit_list = kw.pop('babysit')
         if 'auto_follow' in kw:
             self.auto_follow = bool(kw.pop('auto_follow'))
         if 'follow' in kw:
@@ -20,6 +23,14 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
             if set_focus == -1:
                 self.auto_follow = True
             self.focus = set_focus
+        self._modified()
+
+    def _modified(self):
+        if self.babysit_list is not None:
+            if self:
+                self.babysit_list[:] = [ self.cur ]
+            else:
+                self.babysit_list[:] = []
 
     def _adjust_focus_on_contents_modified(self, slc, new_items=()):
         focus = super(MyFocusList, self)._adjust_focus_on_contents_modified(slc, new_items=new_items)
