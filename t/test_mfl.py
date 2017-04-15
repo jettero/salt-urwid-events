@@ -24,3 +24,16 @@ def test_mfl(test_class=MyFocusList):
 def test_msflw():
     test_mfl( MySimpleFocusListWalker )
 
+def test_auto_follow(test_class=MyFocusList):
+    l = test_class([1,2,3,4])
+    l.focus = -1
+    assert l.cur == 4
+    l.append(5)
+    assert l.cur == 4
+    l.auto_follow = True # turn on auto follow
+    l.append(6)          # since we're not on the last item
+    assert l.cur == 4    # we shouldn't follow here
+    l.focus = -1
+    assert l.cur == 6
+    l.append(7)
+    assert l.cur == 7 # we should have followed this time though
