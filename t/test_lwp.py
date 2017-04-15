@@ -1,7 +1,7 @@
 
 from misc.list_ptr import ListWithPtr
 
-def test_lwp()
+def test_lwp():
     lwp1 = ListWithPtr([1,2,3,4])
     assert lwp1.pos == 0
     lwp1.pos = -1
