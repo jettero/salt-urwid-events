@@ -32,3 +32,6 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
     def pos(self, v):
         if not self: return
         self._focus = v % len(self)
+
+class AutoTailFocusList(MyFocusList):
+    pass
