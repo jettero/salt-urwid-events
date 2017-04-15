@@ -6,7 +6,8 @@ import command_map_extra
 import logging
 
 from misc.xlateansi import xlate_ansi, format_code
-from misc import MyFocusList, MySimpleFocusListWalker
+from misc import MyFocusList
+from urwid.listbox import SimpleFocusListWalker
 
 class AnsiableText(urwid.Text):
     def __init__(self, *a,**kw):
@@ -320,10 +321,11 @@ class EventViewer(urwid.ListBox):
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.outputs = MySimpleFocusListWalker([ CodeViewer(event) ], auto_follow=1)
+        self.output_lw = SimpleFocusListWalker([])
+        self.outputs   = MyFocusList([ CodeViewer(event) ], auto_follow=1, babysit_list = self.output_lw)
         if hasattr(event, 'outputter'):
             self.outputs.append( OutputterViewer(event) )
-        super(EventViewer, self).__init__(self.outputs)
+        super(EventViewer, self).__init__(self.output_lw)
         command_map_extra.add_cisco_pager_keys(self)
 
     def key_hints_signal(self, their_cb):
