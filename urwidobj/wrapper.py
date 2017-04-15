@@ -320,7 +320,7 @@ class EventViewer(urwid.ListBox):
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.outputs = MySimpleFocusListWalker([ CodeViewer(event) ])
+        self.outputs = MySimpleFocusListWalker([ CodeViewer(event) ], auto_follow=1)
         if hasattr(event, 'outputter'):
             self.outputs.append( OutputterViewer(event) )
         super(EventViewer, self).__init__(self.outputs)
