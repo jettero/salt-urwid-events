@@ -26,6 +26,10 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
                 self.auto_follow = True
             self.focus = set_focus
         self._sync_babysit_list()
+        sf = self.focus
+        for i in range(len(self)):
+            m = 'set_focused' if i == sf else 'set_unfocused'
+            self._try_method(i, m)
 
     def _sync_babysit_list(self):
         item = self.cur
@@ -44,11 +48,20 @@ class MyFocusList(urwid.monitored_list.MonitoredFocusList):
         self._sync_babysit_list()
         return focus
 
+    def _try_method(self, index, name, *a, **kw):
+        if not self or not name or index is None:
+            return
+        if index < len(self) and index >= 0:
+            if hasattr(self[index],name):
+                getattr(self[index],name)(*a, **kw)
+
     def _set_focus(self, index):
         if not self: return
+        self._try_method( self.focus, 'set_unfocused' )
         index = index % len(self)
         super(MyFocusList,self)._set_focus(index)
         self._sync_babysit_list()
+        self._try_method( self.focus, 'set_focused' )
 
     def _get_focus(self):
         return super(MyFocusList,self)._get_focus()
