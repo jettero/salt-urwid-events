@@ -320,12 +320,12 @@ class EventViewer(urwid.ListBox):
     def __init__(self,event):
         self.log = logging.getLogger(self.__class__.__name__)
         self.event = event
-        self.outputs = MyFocusList()
-        self.outputs.siv = urwid.SimpleFocusListWalker([])
-        self.outputs.append( CodeViewer(event) )
+        self.outputs = misc.MySimpleFocusListWalker([
+            CodeViewer(event),
+        ])
         if hasattr(event, 'outputter'):
             self.outputs.append( OutputterViewer(event) )
-        super(EventViewer, self).__init__(self.outputs.siv)
+        super(EventViewer, self).__init__(self.outputs)
         command_map_extra.add_cisco_pager_keys(self)
 
     def key_hints_signal(self, their_cb):
@@ -344,7 +344,7 @@ class EventViewer(urwid.ListBox):
         if key and self.key_hints: # if key is true, super() didn't handle the keypress
             if key in ('m',):
                 self.outputs.next
-                self.log.debug('swapping mode {0} {1}'.format(self.outputs.pos,self.outputs.siv))
+                self.log.debug('swapping mode {0} {1}'.format(self.outputs.pos,self.outputs))
                 return # we handled the keystroke
 
             else:
