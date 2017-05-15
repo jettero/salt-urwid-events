@@ -704,7 +704,7 @@ class Return(JobEvent):
     @property
     def job_desc(self):
         return (
-            '<>',
+            '{0}'.format(self.try_attr('id')),
             self.try_attr('fun'),
             self.try_attr('fun_args', preformat=my_args_format),
         )
