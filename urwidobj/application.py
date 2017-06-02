@@ -212,10 +212,10 @@ class EventApplication(object):
 
     def update_key_hints(self):
         body_widget = self.main_frame.body
-        key_hints = ['[s]ave-event']
+        key_hints = ['[s]ave']
         if len(self.page_stack) == 1:
-            if self.page_stack[0] is self.events_listbox: key_hints.append('[m]ode=ev')
-            elif self.page_stack[0] is self.jobs_listbox: key_hints.append('[m]ode=jb')
+            if self.page_stack[0] is self.events_listbox: key_hints.append('[m]ode=events')
+            elif self.page_stack[0] is self.jobs_listbox: key_hints.append('[m]ode=jobs')
             else:                                         key_hints.append('[m]ode=??')
         if hasattr(body_widget,'key_hints'):
             key_hints.append(body_widget.key_hints)
