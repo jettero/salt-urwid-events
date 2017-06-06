@@ -5,10 +5,7 @@
 #
 #       Also, sometimes the cursor isn't restored at the end
 
-ulimit -u 80 # simple minor bugs in the forking have crashed my dev host,
-             # trigging ridiculous oom decisions
-             # ∃ burried code within the application to set oom priority
-             # to kill me first, but ulimit seems smart anyway
+source limit-shell.sh
 
 my_dir="$(dirname "$0")"
 cd "$my_dir" || exit
