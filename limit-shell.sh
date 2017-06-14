@@ -1,5 +1,7 @@
 #!/source/this/bash
 
+declare -A limits
+
 ulimit -u 80 # simple minor bugs in the forking have crashed my dev host,
              # trigging ridiculous oom decisions
              # ∃ burried code within the application to set oom priority
@@ -7,7 +9,12 @@ ulimit -u 80 # simple minor bugs in the forking have crashed my dev host,
 
 # I added these off the top of my head as resonably large numbers that will
 # still leave the system salvagable after a fork-bomb accident (maybe)
-ulimit -c 1000 -e 15 -d 1500 -m 2500 -t 3600 -v 2000
+ulimit -c 1000
+ulimit -e 15
+ulimit -d 1500
+ulimit -m 2500
+ulimit -t 3600
+ulimit -v 2000
 
 # core file size          (blocks, -c) 0
 # data seg size           (kbytes, -d) unlimited
