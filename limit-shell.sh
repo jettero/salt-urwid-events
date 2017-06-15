@@ -10,12 +10,12 @@ ulimit -u 80 # simple minor bugs in the forking have crashed my dev host,
 # I added these off the top of my head as resonably large numbers that will
 # still leave the system salvagable after a fork-bomb accident (maybe)
 
-ulimit -c 1000  # core file size          (blocks, -c) 0
-ulimit -e 15    # scheduling priority             (-e) 0
-ulimit -d 3000  # data seg size           (kbytes, -d) unlimited
-ulimit -m 3000  # max memory size         (kbytes, -m) unlimited
-ulimit -t 3600  # cpu time               (seconds, -t) unlimited
-ulimit -v 5000  # virtual memory          (kbytes, -v) unlimited
+ulimit -c   3000  # core file size          (blocks, -c) 0
+ulimit -e     15  # scheduling priority             (-e) 0
+ulimit -d 500000  # data seg size           (kbytes, -d) unlimited
+ulimit -m 500000  # max memory size         (kbytes, -m) unlimited
+ulimit -v 500000  # virtual memory          (kbytes, -v) unlimited
+ulimit -t   3600  # cpu time               (seconds, -t) unlimited
 
 set +x
 
