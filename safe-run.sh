@@ -14,7 +14,7 @@ source bash/emergency-kill-urwid.sh
 
 rm -vf uevents.log
 
-./uevents.py "$@"
+${USE_PYTHON} ./uevents.py "$@"
 
 newk_urwid
 echo -n $'\x1b'"[?25h"
